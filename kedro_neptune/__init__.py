@@ -22,17 +22,3 @@ __all__ = [
 from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
-
-
-try:
-    # neptune-client=0.9.0+ package structure
-    import neptune.new as neptune
-    from neptune.new.internal.utils import verify_type
-    from neptune.new.internal.utils.compatibility import expect_not_an_experiment
-except ImportError:
-    # neptune-client>=1.0.0 package structure
-    import neptune
-    from neptune.internal.utils import verify_type
-    from neptune.internal.utils.compatibility import expect_not_an_experiment
-
-INTEGRATION_VERSION_KEY = 'source_code/integrations/kedro-neptune'

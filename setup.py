@@ -73,6 +73,12 @@ def main():
             'Topic :: Scientific/Engineering :: Artificial Intelligence',
         ],
         keywords=['MLOps', 'ML Experiment Tracking', 'ML Model Registry', 'ML Model Store', 'ML Metadata Store'],
+        entry_points={
+            "kedro.project_commands": ["neptune = kedro_neptune.cli:commands"],
+            "kedro.hooks": [
+                "neptune_init = kedro_neptune.hooks:neptune_init",
+            ],
+        },
     )
 
 
