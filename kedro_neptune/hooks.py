@@ -1,9 +1,9 @@
 import os
 import time
 import hashlib
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
-from kedro.io import DataCatalog
+from kedro.io import DataCatalog, AbstractDataSet, MemoryDataSet
 from kedro.pipeline import Pipeline
 from kedro.pipeline.node import Node
 from kedro.framework.hooks import hook_impl
@@ -13,6 +13,7 @@ from kedro.framework.session import get_current_session
 try:
     # neptune-client=0.9.0+ package structure
     import neptune.new as neptune
+    from neptune.new import Run
     from neptune.new.internal.utils import verify_type
 except ImportError:
     # neptune-client>=1.0.0 package structure
@@ -24,6 +25,21 @@ from kedro_neptune import __version__
 
 
 INTEGRATION_VERSION_KEY = 'source_code/integrations/kedro-neptune'
+
+
+def log_dataset_metadata(run: Run, base_namespace: str, name: str, dataset: AbstractDataSet):
+    run[f'{base_namespace}/datasets/{name}'] = {
+        'type': type(dataset).__name__,
+        'name': name,
+        'filepath': dataset._filepath if hasattr(dataset, '_filepath') else None,
+        'version': dataset._version if hasattr(dataset, '_version') else None
+    }
+
+
+def log_data_catalog_metadata(run: Run, base_namespace: str, catalog: DataCatalog):
+    for name, dataset in catalog._data_sets.items():
+        if not isinstance(dataset, MemoryDataSet):
+            log_dataset_metadata(run=run, base_namespace=base_namespace, name=name, dataset=dataset)
 
 
 class NeptuneInit:
@@ -45,6 +61,7 @@ class NeptuneInit:
 
         run = neptune.init(monitoring_namespace='monitoring')
         run[INTEGRATION_VERSION_KEY] = run_params.get('kedro_version', __version__)
+        log_data_catalog_metadata(run=run, base_namespace=config['neptune']['base_namespace'], catalog=catalog)
 
     @hook_impl
     def before_node_run(
