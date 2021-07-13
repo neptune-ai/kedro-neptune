@@ -14,12 +14,14 @@
 # limitations under the License.
 #
 
+import os
 import yaml
 
 import click
 
 from kedro.framework.project import settings
-from kedro.framework.session import get_current_session
+from kedro.framework.session import KedroSession
+from kedro.framework.startup import ProjectMetadata
 
 
 @click.group(name="Neptune")
@@ -33,31 +35,33 @@ def neptune_commands():
     pass
 
 
-CREDENTIALS_CONFIG = {
-    'neptune': {
-        'api_token': '',
-        'project': ''
-    }
-}
-
-INITIAL_PROJECT_SETTINGS = {
-    'base_namesapce': 'kedro'
-}
-
-
 @neptune_commands.command()
-def init():
-    session = get_current_session()
+@click.option('--api-token', prompt='API Token', default=lambda: os.environ.get("NEPTUNE_API_TOKEN", "ANONYMOUS"))
+@click.option('--project', prompt=True, default=lambda: os.environ.get("NEPTUNE_PROJECT", "kedro-integration"))
+@click.option('--base-namespace', default="kedro")
+@click.pass_obj
+def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace: str):
+    session = KedroSession(metadata.package_name)
     context = session.load_context()
 
     context.credentials_file = context.project_path / settings.CONF_ROOT / 'local' / "credentials_neptune.yml"
 
     if not context.credentials_file.exists():
-        with context.credentials_file.open("w") as config_file:
-            yaml.dump(CREDENTIALS_CONFIG, config_file, default_flow_style=False)
+        with context.credentials_file.open("w") as credentials_file:
+            yaml.dump({
+                    'neptune': {
+                        'NEPTUNE_API_TOKEN': api_token
+                    }
+                },
+                credentials_file, default_flow_style=False)
 
     context.config_file = context.project_path / settings.CONF_ROOT / 'base' / "neptune.yml"
 
     if not context.config_file.exists():
         with context.config_file.open("w") as config_file:
-            yaml.dump(INITIAL_PROJECT_SETTINGS, config_file, default_flow_style=False)
+            yaml.dump({
+                'neptune': {
+                    'base_namespace': base_namespace,
+                    'project': project
+                }
+            }, config_file, default_flow_style=False)

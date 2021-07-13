@@ -37,9 +37,10 @@ class NeptuneInit:
         session = get_current_session()
         context = session.load_context()
         credentials = context._get_config_credentials()
+        config = context.config_loader.get('neptune**')
 
-        os.environ.setdefault('NEPTUNE_API_TOKEN', credentials['neptune']['api_token'] or '')
-        os.environ.setdefault('NEPTUNE_PROJECT', credentials['neptune']['api_token'] or '')
+        os.environ.setdefault('NEPTUNE_API_TOKEN', credentials['neptune']['NEPTUNE_API_TOKEN'] or '')
+        os.environ.setdefault('NEPTUNE_PROJECT', config['neptune']['project'] or '')
         os.environ.setdefault('NEPTUNE_CUSTOM_RUN_ID', hashlib.md5(repr(time.time()).encode()).hexdigest())
 
         run = neptune.init(monitoring_namespace='monitoring')
