@@ -1,12 +1,13 @@
 import os
-import uuid
-from pathlib import Path
-from typing import Dict, Any
+import time
+import hashlib
+from typing import Dict, Any, Optional
 
-from kedro.pipeline import Pipeline
 from kedro.io import DataCatalog
+from kedro.pipeline import Pipeline
+from kedro.pipeline.node import Node
 from kedro.framework.hooks import hook_impl
-from kedro.framework.session import KedroSession
+from kedro.framework.session import get_current_session
 
 
 try:
@@ -33,18 +34,27 @@ class NeptuneInit:
             pipeline: Pipeline,
             catalog: DataCatalog
     ) -> None:
-        metadata = _get_project_metadata(project_path=Path().cwd())
-        session = KedroSession.create(metadata.package_name)
+        session = get_current_session()
         context = session.load_context()
-        credentials = context.config_loader.get("credentials*", "credentials*/**")
+        credentials = context._get_config_credentials()
 
         os.environ.setdefault('NEPTUNE_API_TOKEN', credentials['neptune']['api_token'] or '')
         os.environ.setdefault('NEPTUNE_PROJECT', credentials['neptune']['api_token'] or '')
-        os.environ.setdefault('NEPTUNE_CUSTOM_RUN_ID', repr(uuid.uuid4()))
+        os.environ.setdefault('NEPTUNE_CUSTOM_RUN_ID', hashlib.md5(repr(time.time()).encode()).hexdigest())
 
-        run = neptune.init()
+        run = neptune.init(monitoring_namespace='monitoring')
+        run[INTEGRATION_VERSION_KEY] = run_params.get('kedro_version', __version__)
 
-        run[INTEGRATION_VERSION_KEY] = __version__
+    @hook_impl
+    def before_node_run(
+            self,
+            node: Node,
+            catalog: DataCatalog,
+            inputs: Dict[str, Any],
+            is_async: bool,
+            run_id: str,
+    ):
+        os.environ['NEPTUNE_MONITORING_NAMESPACE'] = f'monitoring/{node.short_name}'
 
 
 neptune_init = NeptuneInit()

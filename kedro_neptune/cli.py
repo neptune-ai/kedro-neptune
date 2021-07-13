@@ -19,7 +19,7 @@ import yaml
 import click
 
 from kedro.framework.project import settings
-from kedro.framework.session import KedroSession
+from kedro.framework.session import get_current_session
 
 
 @click.group(name="Neptune")
@@ -46,9 +46,8 @@ INITIAL_PROJECT_SETTINGS = {
 
 
 @neptune_commands.command()
-@click.pass_obj
-def init(metadata):
-    session = KedroSession.create(metadata.package_name)
+def init():
+    session = get_current_session()
     context = session.load_context()
 
     context.credentials_file = context.project_path / settings.CONF_ROOT / 'local' / "credentials_neptune.yml"
