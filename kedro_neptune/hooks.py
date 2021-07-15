@@ -75,9 +75,10 @@ class NeptuneInit:
         os.environ.setdefault('NEPTUNE_PROJECT', config['neptune']['project'] or '')
         os.environ.setdefault('NEPTUNE_CUSTOM_RUN_ID', hashlib.md5(repr(time.time()).encode()).hexdigest())
 
-        base_namespace = config['neptune']['base_namespace']
+        base_namespace = config['neptune']['base_namespace'] or 'kedro'
+        source_files = config['neptune']['upload_source_files'] or None
 
-        run = neptune.init(monitoring_namespace='monitoring')
+        run = neptune.init(monitoring_namespace='monitoring', source_files=source_files)
         run[INTEGRATION_VERSION_KEY] = run_params.get('kedro_version', __version__)
         run[f'{base_namespace}/kedro_command'] = ' '.join(sys.argv)
 
@@ -117,7 +118,7 @@ class NeptuneInit:
 
         base_namespace = config['neptune']['base_namespace']
 
-        run = neptune.init(monitoring_namespace=f'monitoring/nodes/{node.short_name}')
+        run = neptune.init(monitoring_namespace=f'monitoring/nodes/{node.short_name}', source_files=[])
         run[f'{base_namespace}/nodes/{node.short_name}/outputs'] = list(outputs.keys())
         run[f'{base_namespace}/nodes/{node.short_name}/inputs'] = list(inputs.keys())
         run[f'{base_namespace}/nodes/{node.short_name}/execution_time'] = execution_time

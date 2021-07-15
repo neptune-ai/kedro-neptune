@@ -62,6 +62,7 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
             yaml.dump({
                 'neptune': {
                     'base_namespace': base_namespace,
-                    'project': project
+                    'project': project,
+                    'upload_source_files': ['**/*.py',  'conf/base/*.yml']
                 }
             }, config_file, default_flow_style=False)
