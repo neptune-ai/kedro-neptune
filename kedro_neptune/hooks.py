@@ -27,6 +27,7 @@ except ImportError:
 
 
 from kedro_neptune import __version__
+from kedro_neptune.datasets import NeptuneMetadataDataSet
 
 
 INTEGRATION_VERSION_KEY = 'source_code/integrations/kedro-neptune'
@@ -43,7 +44,7 @@ def log_dataset_metadata(run: Run, base_namespace: str, name: str, dataset: Abst
 
 def log_data_catalog_metadata(run: Run, base_namespace: str, catalog: DataCatalog):
     for name, dataset in catalog._data_sets.items():
-        if not isinstance(dataset, MemoryDataSet):
+        if not isinstance(dataset, MemoryDataSet) and not isinstance(dataset, NeptuneMetadataDataSet):
             log_dataset_metadata(run=run, base_namespace=base_namespace, name=name, dataset=dataset)
 
 
@@ -58,6 +59,27 @@ def log_run_params(run: Run, base_namespace: str, run_params: Dict[str, Any]):
 class NeptuneInit:
     def __init__(self):
         self._timers = {}
+        self._neptune_run = None
+
+    @hook_impl
+    def after_catalog_created(
+            self,
+            catalog: DataCatalog,
+            conf_catalog: Dict[str, Any],
+            conf_creds: Dict[str, Any],
+            feed_dict: Dict[str, Any],
+            save_version: str,
+            load_versions: Dict[str, str],
+            run_id: str,
+    ) -> None:
+        print('CATALOG')
+        self._neptune_run = neptune.init(monitoring_namespace='monitoring', source_files=[])
+        catalog.add(
+            data_set_name='neptune_metadata',
+            data_set=NeptuneMetadataDataSet(
+                self._neptune_run
+            )
+        )
 
     @hook_impl
     def before_pipeline_run(
@@ -66,6 +88,7 @@ class NeptuneInit:
             pipeline: Pipeline,
             catalog: DataCatalog
     ) -> None:
+        print("PIPELINE")
         session = get_current_session()
         context = session.load_context()
         credentials = context._get_config_credentials()
@@ -78,18 +101,17 @@ class NeptuneInit:
         base_namespace = config['neptune']['base_namespace'] or 'kedro'
         source_files = config['neptune']['upload_source_files'] or None
 
-        run = neptune.init(monitoring_namespace='monitoring', source_files=source_files)
-        run[INTEGRATION_VERSION_KEY] = run_params.get('kedro_version', __version__)
-        run[f'{base_namespace}/kedro_command'] = ' '.join(sys.argv)
+        self._neptune_run[INTEGRATION_VERSION_KEY] = run_params.get('kedro_version', __version__)
+        self._neptune_run[f'{base_namespace}/kedro_command'] = ' '.join(sys.argv)
 
         try:
-            run[f'{base_namespace}/git'] = Repo().git.rev_parse("HEAD")
+            self._neptune_run[f'{base_namespace}/git'] = Repo().git.rev_parse("HEAD")
         except (InvalidGitRepositoryError, GitCommandError):
             pass
 
-        log_run_params(run=run, base_namespace=base_namespace, run_params=run_params)
-        log_data_catalog_metadata(run=run, base_namespace=base_namespace, catalog=catalog)
-        log_pipeline_metadata(run=run, base_namespace=base_namespace, pipeline=pipeline)
+        log_run_params(run=self._neptune_run, base_namespace=base_namespace, run_params=run_params)
+        log_data_catalog_metadata(run=self._neptune_run, base_namespace=base_namespace, catalog=catalog)
+        log_pipeline_metadata(run=self._neptune_run, base_namespace=base_namespace, pipeline=pipeline)
 
     @hook_impl
     def before_node_run(
@@ -118,10 +140,10 @@ class NeptuneInit:
 
         base_namespace = config['neptune']['base_namespace']
 
-        run = neptune.init(monitoring_namespace=f'monitoring/nodes/{node.short_name}', source_files=[])
-        run[f'{base_namespace}/nodes/{node.short_name}/outputs'] = list(outputs.keys())
-        run[f'{base_namespace}/nodes/{node.short_name}/inputs'] = list(inputs.keys())
-        run[f'{base_namespace}/nodes/{node.short_name}/execution_time'] = execution_time
+        # run = neptune.init(monitoring_namespace=f'monitoring/nodes/{node.short_name}', source_files=[])
+        # run[f'{base_namespace}/nodes/{node.short_name}/outputs'] = list(outputs.keys())
+        # run[f'{base_namespace}/nodes/{node.short_name}/inputs'] = list(inputs.keys())
+        # run[f'{base_namespace}/nodes/{node.short_name}/execution_time'] = execution_time
 
 
 neptune_init = NeptuneInit()
