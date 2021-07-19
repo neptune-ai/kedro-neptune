@@ -16,7 +16,11 @@ def main():
         all_deps += extras[group_name]
     extras['all'] = all_deps
 
-    base_libs = ['neptune-client>=0.10.1', 'kedro>=0.17.0', 'GitPython>=3.1.18']
+    base_libs = [
+        'neptune-client>=0.10.1',
+        'kedro>=0.17.0',
+        'GitPython>=3.1.18'
+    ]
 
     version = None
     if os.path.exists('PKG-INFO'):
@@ -74,10 +78,8 @@ def main():
         ],
         keywords=['MLOps', 'ML Experiment Tracking', 'ML Model Registry', 'ML Model Store', 'ML Metadata Store'],
         entry_points={
-            "kedro.project_commands": ["neptune = kedro_neptune.cli:commands"],
-            "kedro.hooks": [
-                "neptune_init = kedro_neptune.hooks:neptune_init",
-            ],
+            "kedro.project_commands": ["neptune = kedro_neptune:commands"],
+            "kedro.hooks": ["neptune_hooks = kedro_neptune:neptune_hooks"],
         },
     )
 
