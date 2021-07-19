@@ -9,16 +9,19 @@ from kedro.pipeline.node import Node
 from kedro.framework.hooks import hook_impl
 from kedro.framework.session import get_current_session
 
+from kedro_neptune.datasets import AbstractNeptuneDataSet
 
 try:
     # neptune-client=0.9.0+ package structure
     import neptune.new as neptune
     from neptune.new import Run
     from neptune.new.internal.utils import verify_type
+    from neptune.new.types import File
 except ImportError:
     # neptune-client>=1.0.0 package structure
     import neptune
     from neptune.internal.utils import verify_type
+    from neptune.types import File
 
 
 from kedro_neptune import __version__
@@ -34,6 +37,11 @@ def log_dataset_metadata(run: Run, base_namespace: str, name: str, dataset: Abst
         'filepath': dataset._filepath if hasattr(dataset, '_filepath') else None,
         'version': dataset._version if hasattr(dataset, '_version') else None
     }
+
+    if isinstance(dataset, AbstractNeptuneDataSet):
+        run[f'{base_namespace}/datasets/{name}/data'].upload(
+            File.as_html(dataset.load())
+        )
 
 
 def log_data_catalog_metadata(run: Run, base_namespace: str, catalog: DataCatalog):
