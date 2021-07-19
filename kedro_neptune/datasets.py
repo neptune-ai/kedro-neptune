@@ -2,7 +2,7 @@ from abc import ABC
 from typing import Any, Dict
 
 from kedro.io import AbstractVersionedDataSet
-from kedro.io.core import parse_dataset_definition
+from kedro.io.core import parse_dataset_definition, get_filepath_str
 
 try:
     # neptune-client=0.9.0+ package structure
@@ -27,6 +27,13 @@ class NeptuneArtifactDataSet(AbstractVersionedDataSet):
             It's kind of 'annotation' with information that this `dataset` should be uploaded to neptune."""
             def __init__(self):
                 super().__init__(**data_set_args)
+
+            def load_raw(self):
+                load_path = get_filepath_str(self._get_load_path(), self._protocol)
+
+                with self._fs.open(load_path, **self._fs_open_args_load) as fs_file:
+                    return fs_file.read()
+
 
         # rename the class
         parent_name = dataset_class.__name__

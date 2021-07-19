@@ -39,9 +39,18 @@ def log_dataset_metadata(run: Run, base_namespace: str, name: str, dataset: Abst
     }
 
     if isinstance(dataset, AbstractNeptuneDataSet):
-        run[f'{base_namespace}/datasets/{name}/data'].upload(
-            File.as_html(dataset.load())
-        )
+        file_to_upload = None
+        try:
+            file_to_upload = File.create_from(dataset.load())
+        except TypeError as e:
+            pass
+
+        if file_to_upload is None:
+            file_to_upload = File(
+                content=dataset.load_raw()
+            )
+
+        run[f'{base_namespace}/datasets/{name}/data'].upload(file_to_upload)
 
 
 def log_data_catalog_metadata(run: Run, base_namespace: str, catalog: DataCatalog):
