@@ -16,7 +16,7 @@ def main():
         all_deps += extras[group_name]
     extras['all'] = all_deps
 
-    base_libs = ['neptune-client>=0.10.2', 'kedro>=0.17.0']
+    base_libs = ['neptune-client>=0.10.2', 'kedro>=0.17.0', 'GitPython>=3.1.18']
 
     version = None
     if os.path.exists('PKG-INFO'):
