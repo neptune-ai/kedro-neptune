@@ -20,29 +20,25 @@ __all__ = [
     'neptune_hooks'
 ]
 
-from kedro.framework.context import KedroContext
-
-from ._version import __version__
-
-
+import hashlib
 import os
 import sys
-import yaml
 import time
-import hashlib
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 import click
+import yaml
 from git import Repo
-from git.exc import InvalidGitRepositoryError, GitCommandError
-from kedro.io import DataCatalog, AbstractDataSet, MemoryDataSet
+from git.exc import GitCommandError, InvalidGitRepositoryError
 from kedro.framework.hooks import hook_impl
-from kedro.framework.session import get_current_session, KedroSession
 from kedro.framework.project import settings
+from kedro.framework.session import KedroSession, get_current_session
 from kedro.framework.startup import ProjectMetadata
+from kedro.io import AbstractDataSet, DataCatalog, MemoryDataSet
 from kedro.pipeline import Pipeline
 from kedro.pipeline.node import Node
 
+from ._version import __version__
 
 try:
     # neptune-client=0.9.0+ package structure
@@ -55,14 +51,12 @@ except ImportError:
     from neptune.types import File
     from neptune.internal.utils import verify_type
 
-
 INTEGRATION_VERSION_KEY = 'source_code/integrations/kedro-neptune'
 
 
 @click.group(name="Neptune")
 def commands():
     """Kedro plugin for logging with Neptune.ai"""
-    pass
 
 
 @commands.group(name="neptune")
@@ -85,10 +79,10 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
     if not context.credentials_file.exists():
         with context.credentials_file.open("w") as credentials_file:
             yaml.dump({
-                    'neptune': {
-                        'NEPTUNE_API_TOKEN': api_token
-                    }
-                },
+                'neptune': {
+                    'NEPTUNE_API_TOKEN': api_token
+                }
+            },
                 credentials_file, default_flow_style=False)
 
     context.config_file = context.project_path / settings.CONF_ROOT / config / "neptune.yml"
@@ -99,7 +93,7 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
                 'neptune': {
                     'base_namespace': base_namespace,
                     'project': project,
-                    'upload_source_files': ['**/*.py',  f'{config}/base/*.yml']
+                    'upload_source_files': ['**/*.py', f'{config}/base/*.yml']
                 }
             }, config_file, default_flow_style=False)
 
@@ -121,6 +115,7 @@ class NeptuneMetadataDataSet(AbstractDataSet):
         if not self._run:
             session = get_current_session()
             context = session.load_context()
+            # pylint: disable=protected-access
             credentials = context._get_config_credentials()
             config = context.config_loader.get('neptune**')
 
@@ -133,6 +128,7 @@ class NeptuneMetadataDataSet(AbstractDataSet):
 
 
 def log_parameters(namespace: neptune.run.Handler, catalog: DataCatalog):
+    # pylint: disable=protected-access
     namespace['parameters'] = catalog._data_sets['parameters'].load()
 
 
@@ -140,6 +136,7 @@ def log_dataset_metadata(namespace: neptune.run.Handler, name: str, dataset: Abs
     namespace[name] = {
         'type': type(dataset).__name__,
         'name': name,
+        # pylint: disable=protected-access
         **dataset._describe()
     }
 
@@ -148,6 +145,7 @@ def log_data_catalog_metadata(namespace: neptune.run.Handler, catalog: DataCatal
     log_parameters(namespace=namespace, catalog=catalog)
 
     namespace = namespace['datasets']
+    # pylint: disable=protected-access
     for name, dataset in catalog._data_sets.items():
         if not isinstance(dataset, MemoryDataSet) and not isinstance(dataset, NeptuneMetadataDataSet):
             log_dataset_metadata(namespace=namespace, name=name, dataset=dataset)
@@ -188,6 +186,7 @@ class NeptuneHooks:
     def base_namespace(self) -> str:
         return self._base_namespace
 
+    # pylint: disable=unused-argument
     @hook_impl
     def after_catalog_created(
             self,
@@ -216,6 +215,7 @@ class NeptuneHooks:
     ) -> None:
         session = get_current_session()
         context = session.load_context()
+        # pylint: disable=protected-access
         credentials = context._get_config_credentials()
         config = context.config_loader.get('neptune**')
 
