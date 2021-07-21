@@ -30,12 +30,14 @@ import sys
 import yaml
 import time
 import hashlib
+from abc import ABC
 from typing import Optional, Dict, Any
 
 import click
 from git import Repo
 from git.exc import InvalidGitRepositoryError, GitCommandError
 from kedro.io import DataCatalog, AbstractDataSet, MemoryDataSet
+from kedro.io.core import parse_dataset_definition, get_filepath_str
 from kedro.framework.hooks import hook_impl
 from kedro.framework.session import get_current_session, KedroSession
 from kedro.framework.project import settings
@@ -136,6 +138,47 @@ class NeptuneMetadataDataSet(AbstractDataSet):
         return self._run[self._base_namespace]
 
 
+class AbstractNeptuneDataSet(AbstractDataSet, ABC):
+    """Abstract class for extending other DataSets.
+     Instances are produced by NeptuneArtifactDataSet factory."""
+
+    def load_raw(self) -> Any:
+        pass
+
+
+class NeptuneArtifactDataSet(AbstractDataSet):
+    def __new__(cls, dataset: Dict):
+        dataset_class, data_set_args = parse_dataset_definition(config=dataset)
+
+        class NeptuneExtendedDataSet(dataset_class, AbstractNeptuneDataSet):
+            """This class extends dataset_class.
+            It's kind of 'annotation' with information that this `dataset` should be uploaded to neptune."""
+            def __init__(self):
+                super().__init__(**data_set_args)
+
+            def load_raw(self):
+                load_path = get_filepath_str(self._get_load_path(), self._protocol)
+
+                with self._fs.open(load_path, **self._fs_open_args_load) as fs_file:
+                    return fs_file.read()
+
+        # rename the class
+        parent_name = dataset_class.__name__
+        NeptuneExtendedDataSet.__name__ = f"NeptuneArtifactDataSetFor{parent_name}"
+        NeptuneExtendedDataSet.__qualname__ = f"{cls.__name__}.{NeptuneArtifactDataSet.__name__}"
+
+        return NeptuneExtendedDataSet()
+
+    def _load(self) -> Any:
+        raise AttributeError("NeptuneArtifactDataSet is a factory, this function should not be called.")
+
+    def _save(self, data: Any) -> None:
+        raise AttributeError("NeptuneArtifactDataSet is a factory, this function should not be called.")
+
+    def _describe(self) -> Dict[str, Any]:
+        raise AttributeError("NeptuneArtifactDataSet is a factory, this function should not be called.")
+
+
 def log_parameters(namespace: neptune.run.Handler, catalog: DataCatalog):
     namespace['parameters'] = catalog._data_sets['parameters'].load()
 
@@ -148,6 +191,18 @@ def log_dataset_metadata(namespace: neptune.run.Handler, name: str, dataset: Abs
     }
 
 
+def log_artifact(namespace: neptune.run.Handler, name: str, dataset: AbstractNeptuneDataSet):
+    file_to_upload = None
+    try:
+        file_to_upload = File.create_from(dataset.load())
+    except TypeError:
+        file_to_upload = File(
+            content=dataset.load_raw()
+        )
+
+    namespace[f'{name}/data'].upload(file_to_upload)
+
+
 def log_data_catalog_metadata(namespace: neptune.run.Handler, catalog: DataCatalog):
     log_parameters(namespace=namespace, catalog=catalog)
 
@@ -155,6 +210,9 @@ def log_data_catalog_metadata(namespace: neptune.run.Handler, catalog: DataCatal
     for name, dataset in catalog._data_sets.items():
         if not isinstance(dataset, MemoryDataSet) and not isinstance(dataset, NeptuneMetadataDataSet):
             log_dataset_metadata(namespace=namespace, name=name, dataset=dataset)
+
+        if isinstance(dataset, AbstractNeptuneDataSet):
+            log_artifact(namespace=namespace, name=name, dataset=dataset)
 
 
 def log_pipeline_metadata(namespace: neptune.run.Handler, pipeline: Pipeline):
