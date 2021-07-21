@@ -17,7 +17,7 @@ def main():
     extras['all'] = all_deps
 
     base_libs = [
-        'neptune-client>=0.10.1',
+        'neptune-client>=0.10.2',
         'kedro>=0.17.0',
         'GitPython>=3.1.18'
     ]
