@@ -9,12 +9,7 @@ def main():
     with open('README.md') as readme_file:
         readme = readme_file.read()
 
-    extras = {
-        'dev': [
-            'pylint',
-            'pylintfileheader'
-        ]
-    }
+    extras = {}
 
     all_deps = []
     for group_name in extras:
