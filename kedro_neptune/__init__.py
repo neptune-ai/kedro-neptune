@@ -24,7 +24,6 @@ import hashlib
 import os
 import sys
 import time
-import hashlib
 from abc import ABC
 from typing import Any, Dict, Optional
 
@@ -32,13 +31,12 @@ import click
 import yaml
 from git import Repo
 from git.exc import GitCommandError, InvalidGitRepositoryError
-from kedro.io import DataCatalog, AbstractDataSet, MemoryDataSet
-from kedro.io.core import parse_dataset_definition, get_filepath_str
 from kedro.framework.hooks import hook_impl
 from kedro.framework.project import settings
 from kedro.framework.session import KedroSession, get_current_session
 from kedro.framework.startup import ProjectMetadata
 from kedro.io import AbstractDataSet, DataCatalog, MemoryDataSet
+from kedro.io.core import get_filepath_str, parse_dataset_definition
 from kedro.pipeline import Pipeline
 from kedro.pipeline.node import Node
 
@@ -164,6 +162,7 @@ class NeptuneArtifactDataSet(AbstractDataSet):
         NeptuneExtendedDataSet.__name__ = f"NeptuneArtifactDataSetFor{parent_name}"
         NeptuneExtendedDataSet.__qualname__ = f"{cls.__name__}.{NeptuneArtifactDataSet.__name__}"
 
+        # pylint: disable=abstract-class-instantiated
         return NeptuneExtendedDataSet()
 
     def _load(self) -> Any:
