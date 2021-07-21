@@ -181,6 +181,7 @@ class NeptuneHooks:
 
         self._node_execution_timers: Dict[str, float] = {}
 
+    # pylint: disable=unused-argument
     @hook_impl
     def after_catalog_created(
             self,
