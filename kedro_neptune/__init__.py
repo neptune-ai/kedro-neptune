@@ -101,37 +101,41 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
             }, config_file, default_flow_style=False)
 
 
+def get_neptune_config():
+    session: KedroSession = get_current_session()
+    context = session.load_context()
+    # pylint: disable=protected-access
+    credentials = context._get_config_credentials()
+    config = context.config_loader.get('neptune**')
+
+    api_token = credentials['neptune']['NEPTUNE_API_TOKEN']
+    project = config['neptune']['project']
+    base_namespace = config['neptune']['base_namespace'] or 'kedro'
+    source_files = config['neptune']['upload_source_files']
+
+    return api_token, project, base_namespace, source_files
+
+
 class NeptuneMetadataDataSet(AbstractDataSet):
-    def __init__(self, run_id: str):
-        self._run_id: str = run_id
-        self._base_namespace: str = 'kedro'
-        self._run: Optional[neptune.Run] = None
-
     def _save(self, data: Dict[str, Any]) -> None:
-        assert self._run is not None
-
-        self._run.assign(data)
+        pass
 
     def _describe(self) -> Dict[str, Any]:
-        return getattr(self._run, 'get_structure', {})
+        pass
 
     def _load(self) -> neptune.run.Handler:
-        if not self._run:
-            session = get_current_session()
-            context = session.load_context()
-            # pylint: disable=protected-access
-            credentials = context._get_config_credentials()
-            config = context.config_loader.get('neptune**')
+        api_token, project, base_namespace, _ = get_neptune_config()
 
-            self._base_namespace = config['neptune']['base_namespace'] or 'kedro'
-            self._run = neptune.init(api_token=credentials['neptune']['NEPTUNE_API_TOKEN'],
-                                     project=config['neptune']['project'],
-                                     custom_run_id=self._run_id,
-                                     source_files=config['neptune']['upload_source_files'] or None)
+        run = neptune.init(api_token=api_token,
+                           project=project,
+                           capture_stdout=False,
+                           capture_stderr=False,
+                           capture_hardware_metrics=False,
+                           source_files=None)
 
-            self._run[INTEGRATION_VERSION_KEY] = __version__
+        run[INTEGRATION_VERSION_KEY] = __version__
 
-        return self._run[self._base_namespace]
+        return run[base_namespace]
 
 
 class AbstractNeptuneDataSet(AbstractDataSet, ABC):
@@ -167,13 +171,13 @@ class NeptuneArtifactDataSet(AbstractDataSet):
         return NeptuneExtendedDataSet()
 
     def _load(self) -> Any:
-        raise AttributeError("NeptuneArtifactDataSet is a factory, this function should not be called.")
+        pass
 
     def _save(self, data: Any) -> None:
-        raise AttributeError("NeptuneArtifactDataSet is a factory, this function should not be called.")
+        pass
 
     def _describe(self) -> Dict[str, Any]:
-        raise AttributeError("NeptuneArtifactDataSet is a factory, this function should not be called.")
+        pass
 
 
 def log_parameters(namespace: neptune.run.Handler, catalog: DataCatalog):
@@ -237,8 +241,7 @@ def log_command(namespace: neptune.run.Handler):
 class NeptuneHooks:
     def __init__(self):
         self._run_id: Optional[str] = None
-        self._neptune_metadata: Optional[NeptuneMetadataDataSet] = None
-
+        self._metadata_namespace: neptune.run.Handler = None
         self._node_execution_timers: Dict[str, float] = {}
 
     # pylint: disable=unused-argument
@@ -254,11 +257,11 @@ class NeptuneHooks:
             run_id: str,
     ) -> None:
         self._run_id = hashlib.md5(run_id.encode()).hexdigest()
+        os.environ.setdefault('NEPTUNE_CUSTOM_RUN_ID', self._run_id)
 
-        self._neptune_metadata = NeptuneMetadataDataSet(self._run_id)
         catalog.add(
             data_set_name='neptune_metadata',
-            data_set=self._neptune_metadata
+            data_set=NeptuneMetadataDataSet()
         )
 
     @hook_impl
@@ -268,23 +271,22 @@ class NeptuneHooks:
             pipeline: Pipeline,
             catalog: DataCatalog
     ) -> None:
-        session = get_current_session()
-        context = session.load_context()
-        # pylint: disable=protected-access
-        credentials = context._get_config_credentials()
-        config = context.config_loader.get('neptune**')
+        api_token, project, base_namespace, source_files = get_neptune_config()
 
-        os.environ.setdefault('NEPTUNE_API_TOKEN', credentials['neptune']['NEPTUNE_API_TOKEN'] or '')
-        os.environ.setdefault('NEPTUNE_PROJECT', config['neptune']['project'] or '')
-        os.environ.setdefault('NEPTUNE_CUSTOM_RUN_ID', self._run_id)
+        run = neptune.init(api_token=api_token,
+                           project=project,
+                           custom_run_id=self._run_id,
+                           source_files=source_files or None)
+        self._metadata_namespace = run[base_namespace]
 
-        neptune_run = self._neptune_metadata.load()
+        os.environ.setdefault('NEPTUNE_API_TOKEN', api_token or '')
+        os.environ.setdefault('NEPTUNE_PROJECT', project or '')
 
-        log_command(namespace=neptune_run)
-        log_git_sha(namespace=neptune_run)
-        log_run_params(namespace=neptune_run, run_params=run_params)
-        log_data_catalog_metadata(namespace=neptune_run, catalog=catalog)
-        log_pipeline_metadata(namespace=neptune_run, pipeline=pipeline)
+        log_command(namespace=self._metadata_namespace)
+        log_git_sha(namespace=self._metadata_namespace)
+        log_run_params(namespace=self._metadata_namespace, run_params=run_params)
+        log_data_catalog_metadata(namespace=self._metadata_namespace, catalog=catalog)
+        log_pipeline_metadata(namespace=self._metadata_namespace, pipeline=pipeline)
 
     @hook_impl
     def before_node_run(
@@ -295,8 +297,7 @@ class NeptuneHooks:
             is_async: bool,
             run_id: str,
     ):
-        neptune_run = self._neptune_metadata.load()
-        current_namespace = neptune_run[f'nodes/{node.short_name}']
+        current_namespace = self._metadata_namespace[f'nodes/{node.short_name}']
 
         if inputs:
             current_namespace['inputs'].log(list(sorted(inputs.keys())))
@@ -306,6 +307,7 @@ class NeptuneHooks:
                 current_namespace[f'parameters/{input_name[len("params:"):]}'] = input_value
 
         os.environ['NEPTUNE_MONITORING_NAMESPACE'] = f'monitoring/nodes/{node.short_name}'
+
         self._node_execution_timers[node.short_name] = time.time()
 
     @hook_impl
@@ -315,10 +317,11 @@ class NeptuneHooks:
             outputs: Dict[str, Any],
             inputs: Dict[str, Any]
     ) -> None:
+        del os.environ['NEPTUNE_MONITORING_NAMESPACE']
+
         execution_time = float(time.time() - self._node_execution_timers[node.short_name])
 
-        neptune_run = self._neptune_metadata.load()
-        current_namespace = neptune_run[f'nodes/{node.short_name}']
+        current_namespace = self._metadata_namespace[f'nodes/{node.short_name}']
 
         if outputs:
             current_namespace['outputs'].log(list(sorted(outputs.keys())))
