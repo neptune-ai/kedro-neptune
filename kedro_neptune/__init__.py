@@ -17,7 +17,8 @@
 __all__ = [
     '__version__',
     'NeptuneMetadataDataSet',
-    'neptune_hooks'
+    'neptune_hooks',
+    'init'
 ]
 
 import hashlib
