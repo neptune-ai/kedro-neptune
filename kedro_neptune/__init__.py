@@ -154,39 +154,38 @@ class AbstractNeptuneDataSet(AbstractDataSet, ABC):
     def load_raw(self) -> Any:
         pass
 
+    def _describe(self):
+        return {}
 
-class NeptuneArtifactDataSet(AbstractDataSet):
-    def __new__(cls, dataset: Dict):
-        dataset_class, data_set_args = parse_dataset_definition(config=dataset)
-
-        class NeptuneExtendedDataSet(dataset_class, AbstractNeptuneDataSet):
-            """This class extends dataset_class.
-            It's kind of 'annotation' with information that this `dataset` should be uploaded to neptune."""
-            def __init__(self):
-                super().__init__(**data_set_args)
-
-            def load_raw(self):
-                load_path = get_filepath_str(self._get_load_path(), self._protocol)
-
-                with self._fs.open(load_path, **self._fs_open_args_load) as fs_file:
-                    return fs_file.read()
-
-        # rename the class
-        parent_name = dataset_class.__name__
-        NeptuneExtendedDataSet.__name__ = f"NeptuneArtifactDataSetFor{parent_name}"
-        NeptuneExtendedDataSet.__qualname__ = f"{cls.__name__}.{NeptuneArtifactDataSet.__name__}"
-
-        # pylint: disable=abstract-class-instantiated
-        return NeptuneExtendedDataSet()
-
-    def _load(self) -> Any:
+    def _load(self):
         pass
 
     def _save(self, data: Any) -> None:
         pass
 
-    def _describe(self) -> Dict[str, Any]:
-        pass
+
+class NeptuneArtifactDataSetFactory:
+    """This class extends dataset_class.
+    It's kind of 'annotation' with information that this `dataset` should be uploaded to neptune."""
+
+    @classmethod
+    def build(cls, dataset_class, data_set_args):
+        # return type(f"NeptuneArtifactDataSetFor{dataset_class.__name__}", (dataset_class,), {
+        #     # 'load_raw': load_raw
+        # })(**data_set_args)
+        return dataset_class(**data_set_args)
+
+
+def load_raw(self):
+    load_path = get_filepath_str(self._get_load_path(), self._protocol)
+
+    with self._fs.open(load_path, **self._fs_open_args_load) as fs_file:
+        return fs_file.read()
+
+
+class NeptuneArtifactDataSet(AbstractDataSet):
+    def __init__(self, dataset: Dict):
+        self.dataset = dataset
 
 
 def log_parameters(namespace: neptune.run.Handler, catalog: DataCatalog):
@@ -204,15 +203,15 @@ def log_dataset_metadata(namespace: neptune.run.Handler, name: str, dataset: Abs
 
 
 def log_artifact(namespace: neptune.run.Handler, name: str, dataset: AbstractNeptuneDataSet):
-    file_to_upload = None
-    try:
-        file_to_upload = File.create_from(dataset.load())
-    except TypeError:
-        file_to_upload = File(
-            content=dataset.load_raw()
-        )
-
-    namespace[f'{name}/data'].upload(file_to_upload)
+    # try:
+    #     file_to_upload = File.create_from(dataset.load())
+    # except TypeError:
+    #     file_to_upload = File(
+    #         content=dataset.load_raw()
+    #     )
+    #
+    # namespace[f'{name}/data'].upload(file_to_upload)
+    pass
 
 
 def log_data_catalog_metadata(namespace: neptune.run.Handler, catalog: DataCatalog):
