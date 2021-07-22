@@ -25,7 +25,6 @@ import hashlib
 import os
 import sys
 import time
-from abc import ABC
 from typing import Any, Dict, Optional
 
 import click
@@ -36,7 +35,7 @@ from kedro.framework.hooks import hook_impl
 from kedro.framework.project import settings
 from kedro.framework.session import KedroSession, get_current_session
 from kedro.framework.startup import ProjectMetadata
-from kedro.io import AbstractDataSet, DataCatalog, MemoryDataSet
+from kedro.io import AbstractDataSet, DataCatalog, MemoryDataSet, AbstractVersionedDataSet
 from kedro.io.core import get_filepath_str, parse_dataset_definition
 from kedro.pipeline import Pipeline
 from kedro.pipeline.node import Node
@@ -147,45 +146,30 @@ class NeptuneMetadataDataSet(AbstractDataSet):
         return run[base_namespace]
 
 
-class AbstractNeptuneDataSet(AbstractDataSet, ABC):
-    """Abstract class for extending other DataSets.
-     Instances are produced by NeptuneArtifactDataSet factory."""
+def load_neptune_artifact(data_set: AbstractVersionedDataSet):
+    # pylint: disable=protected-access
+    load_path = get_filepath_str(data_set._get_load_path(), data_set._protocol)
 
-    def load_raw(self) -> Any:
-        pass
-
-    def _describe(self):
-        return {}
-
-    def _load(self):
-        pass
-
-    def _save(self, data: Any) -> None:
-        pass
-
-
-class NeptuneArtifactDataSetFactory:
-    """This class extends dataset_class.
-    It's kind of 'annotation' with information that this `dataset` should be uploaded to neptune."""
-
-    @classmethod
-    def build(cls, dataset_class, data_set_args):
-        # return type(f"NeptuneArtifactDataSetFor{dataset_class.__name__}", (dataset_class,), {
-        #     # 'load_raw': load_raw
-        # })(**data_set_args)
-        return dataset_class(**data_set_args)
-
-
-def load_raw(self):
-    load_path = get_filepath_str(self._get_load_path(), self._protocol)
-
-    with self._fs.open(load_path, **self._fs_open_args_load) as fs_file:
+    with data_set._fs.open(load_path, **data_set._fs_open_args_load) as fs_file:
         return fs_file.read()
 
 
 class NeptuneArtifactDataSet(AbstractDataSet):
-    def __init__(self, dataset: Dict):
-        self.dataset = dataset
+    """
+    This class builds datasets from definition
+    It's kind of 'annotation' with information that this `dataset` should be uploaded to neptune.
+    It was done with simple artifacts instead of inheritance as Kedro requires all datasets to be serializable
+    when running in parallel. Especially it should persist after:
+    >>> ForkingPickler.loads(ForkingPickler.dumps(dataset))
+    It requires additional investigation of dynamic type constructions in Python
+    """
+    def __new__(cls, dataset: Dict):
+        dataset_class, data_set_args = parse_dataset_definition(dataset)
+
+        data_set: dataset_class = dataset_class(**data_set_args)
+        data_set.is_neptune_artifact = True
+
+        return data_set
 
 
 def log_parameters(namespace: neptune.run.Handler, catalog: DataCatalog):
@@ -202,16 +186,15 @@ def log_dataset_metadata(namespace: neptune.run.Handler, name: str, dataset: Abs
     }
 
 
-def log_artifact(namespace: neptune.run.Handler, name: str, dataset: AbstractNeptuneDataSet):
-    # try:
-    #     file_to_upload = File.create_from(dataset.load())
-    # except TypeError:
-    #     file_to_upload = File(
-    #         content=dataset.load_raw()
-    #     )
-    #
-    # namespace[f'{name}/data'].upload(file_to_upload)
-    pass
+def log_artifact(namespace: neptune.run.Handler, name: str, dataset: AbstractVersionedDataSet):
+    try:
+        file_to_upload = File.create_from(dataset.load())
+    except TypeError:
+        file_to_upload = File(
+            content=load_neptune_artifact(dataset)
+        )
+
+    namespace[f'{name}/data'].upload(file_to_upload)
 
 
 def log_data_catalog_metadata(namespace: neptune.run.Handler, catalog: DataCatalog):
@@ -223,7 +206,7 @@ def log_data_catalog_metadata(namespace: neptune.run.Handler, catalog: DataCatal
         if not isinstance(dataset, MemoryDataSet) and not isinstance(dataset, NeptuneMetadataDataSet):
             log_dataset_metadata(namespace=namespace, name=name, dataset=dataset)
 
-        if isinstance(dataset, AbstractNeptuneDataSet):
+        if hasattr(dataset, 'is_neptune_artifact') and dataset.is_neptune_artifact:
             log_artifact(namespace=namespace, name=name, dataset=dataset)
 
 
