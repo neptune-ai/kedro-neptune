@@ -68,6 +68,29 @@ def neptune_commands():
     pass
 
 
+INITIAL_NEPTUNE_CONFIG = """neptune:
+    #GLOBAL CONFIG
+    project: {project}
+    base_namespace: {base_namespace}
+    
+    #LOGGING
+    upload_source_files: ['**/*.py',  '{config}/base/*.yml']
+"""
+
+
+INITIAL_NEPTUNE_CREDENTIALS = """neptune:
+  NEPTUNE_API_TOKEN: {api_token}
+"""
+
+
+INITIAL_NEPTUNE_CATALOG = """# example_artifact:
+#   type: kedro_neptune.NeptuneArtifactDataSet
+#   dataset:
+#     type: pandas.CSVDataSet
+#     filepath: data/01_raw/iris.csv
+"""
+
+
 @neptune_commands.command()
 @click.option('--api-token', prompt='API Token', default=lambda: os.environ.get("NEPTUNE_API_TOKEN"))
 @click.option('--project', prompt=True, default=lambda: os.environ.get("NEPTUNE_PROJECT"))
@@ -82,24 +105,25 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
 
     if not context.credentials_file.exists():
         with context.credentials_file.open("w") as credentials_file:
-            yaml.dump({
-                'neptune': {
-                    'NEPTUNE_API_TOKEN': api_token
-                }
-            },
-                credentials_file, default_flow_style=False)
+            credentials_file.writelines(INITIAL_NEPTUNE_CREDENTIALS.format(
+                api_token=api_token
+            ))
 
     context.config_file = context.project_path / settings.CONF_ROOT / config / "neptune.yml"
 
     if not context.config_file.exists():
         with context.config_file.open("w") as config_file:
-            yaml.dump({
-                'neptune': {
-                    'base_namespace': base_namespace,
-                    'project': project,
-                    'upload_source_files': ['**/*.py', f'{config}/base/*.yml']
-                }
-            }, config_file, default_flow_style=False)
+            config_file.writelines(INITIAL_NEPTUNE_CONFIG.format(
+                project=project,
+                base_namespace=base_namespace,
+                config=config
+            ))
+
+    context.catalog_file = context.project_path / settings.CONF_ROOT / config / "catalog_neptune.yml"
+
+    if not context.catalog_file.exists():
+        with context.catalog_file.open("w") as catalog_file:
+            catalog_file.writelines(INITIAL_NEPTUNE_CATALOG)
 
 
 def get_neptune_config():
