@@ -243,13 +243,13 @@ def log_git_sha(namespace: neptune.run.Handler):
 
 
 def log_command(namespace: neptune.run.Handler):
-    namespace['kedro_command'] = ' '.join(sys.argv[1:])
+    namespace['kedro_command'] = ' '.join(['kedro'] + sys.argv[1:])
 
 
 class NeptuneHooks:
     def __init__(self):
         self._run_id: Optional[str] = None
-        self._metadata_namespace: neptune.run.Handler = None
+        self._metadata_namespace: Optional[neptune.run.Handler] = None
         self._node_execution_timers: Dict[str, float] = {}
 
     # pylint: disable=unused-argument
