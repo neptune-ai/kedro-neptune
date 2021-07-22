@@ -47,11 +47,13 @@ try:
     import neptune.new as neptune
     from neptune.new.types import File
     from neptune.new.internal.utils import verify_type
+    from neptune.new.internal.utils.paths import join_paths
 except ImportError:
     # neptune-client>=1.0.0 package structure
     import neptune
     from neptune.types import File
     from neptune.internal.utils import verify_type
+    from neptune.internal.utils.paths import join_paths
 
 INTEGRATION_VERSION_KEY = 'source_code/integrations/kedro-neptune'
 
@@ -203,11 +205,12 @@ def log_data_catalog_metadata(namespace: neptune.run.Handler, catalog: DataCatal
     namespace = namespace['datasets']
     # pylint: disable=protected-access
     for name, dataset in catalog._data_sets.items():
-        if not isinstance(dataset, MemoryDataSet) and not isinstance(dataset, NeptuneMetadataDataSet):
-            log_dataset_metadata(namespace=namespace, name=name, dataset=dataset)
+        if dataset.exists() and not namespace._run.exists(join_paths(namespace._path, name)):
+            if not isinstance(dataset, MemoryDataSet) and not isinstance(dataset, NeptuneMetadataDataSet):
+                log_dataset_metadata(namespace=namespace, name=name, dataset=dataset)
 
-        if hasattr(dataset, 'is_neptune_artifact') and dataset.is_neptune_artifact:
-            log_artifact(namespace=namespace, name=name, dataset=dataset)
+            if hasattr(dataset, 'is_neptune_artifact') and dataset.is_neptune_artifact:
+                log_artifact(namespace=namespace, name=name, dataset=dataset)
 
 
 def log_pipeline_metadata(namespace: neptune.run.Handler, pipeline: Pipeline):
@@ -240,11 +243,6 @@ class NeptuneHooks:
     def after_catalog_created(
             self,
             catalog: DataCatalog,
-            conf_catalog: Dict[str, Any],
-            conf_creds: Dict[str, Any],
-            feed_dict: Dict[str, Any],
-            save_version: str,
-            load_versions: Dict[str, str],
             run_id: str,
     ) -> None:
         self._run_id = hashlib.md5(run_id.encode()).hexdigest()
@@ -283,10 +281,7 @@ class NeptuneHooks:
     def before_node_run(
             self,
             node: Node,
-            catalog: DataCatalog,
-            inputs: Dict[str, Any],
-            is_async: bool,
-            run_id: str,
+            inputs: Dict[str, Any]
     ):
         current_namespace = self._metadata_namespace[f'nodes/{node.short_name}']
 
@@ -305,18 +300,26 @@ class NeptuneHooks:
     def after_node_run(
             self,
             node: Node,
-            outputs: Dict[str, Any],
-            inputs: Dict[str, Any]
+            catalog: DataCatalog,
+            outputs: Dict[str, Any]
     ) -> None:
         del os.environ['NEPTUNE_MONITORING_NAMESPACE']
 
         execution_time = float(time.time() - self._node_execution_timers[node.short_name])
 
+        log_data_catalog_metadata(namespace=self._metadata_namespace, catalog=catalog)
         current_namespace = self._metadata_namespace[f'nodes/{node.short_name}']
 
         if outputs:
             current_namespace['outputs'].log(list(sorted(outputs.keys())))
         current_namespace['execution_time'] = execution_time
+
+    @hook_impl
+    def after_pipeline_run(
+            self,
+            catalog: DataCatalog
+    ) -> None:
+        log_data_catalog_metadata(namespace=self._metadata_namespace, catalog=catalog)
 
 
 neptune_hooks = NeptuneHooks()
