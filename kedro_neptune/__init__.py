@@ -29,8 +29,7 @@ import urllib.parse
 from typing import Any, Dict, Optional
 
 import click
-from git import Repo
-from git.exc import GitCommandError, InvalidGitRepositoryError
+import simplejson
 from kedro.framework.hooks import hook_impl
 from kedro.framework.project import settings
 from kedro.framework.session import KedroSession, get_current_session
@@ -38,7 +37,6 @@ from kedro.framework.startup import ProjectMetadata
 from kedro.io import DataCatalog, MemoryDataSet
 from kedro.io.core import (
     AbstractDataSet,
-    AbstractVersionedDataSet,
     get_filepath_str,
     Version,
 )
@@ -90,10 +88,8 @@ INITIAL_NEPTUNE_CREDENTIALS = """neptune:
 
 
 INITIAL_NEPTUNE_CATALOG = """# example_artifact:
-#   type: kedro_neptune.NeptuneArtifactDataSet
-#   dataset:
-#     type: pandas.CSVDataSet
-#     filepath: data/01_raw/iris.csv
+#   type: kedro_neptune.NeptuneFileDataSet
+#   filepath: data/model.pkl
 """
 
 
@@ -166,8 +162,6 @@ class NeptuneMetadataDataSet(AbstractDataSet):
                            capture_stderr=False,
                            capture_hardware_metrics=False,
                            source_files=None)
-
-        run[INTEGRATION_VERSION_KEY] = __version__
 
         return run[base_namespace]
 
@@ -245,11 +239,17 @@ def log_parameters(namespace: neptune.run.Handler, catalog: DataCatalog):
 
 
 def log_dataset_metadata(namespace: neptune.run.Handler, name: str, dataset: AbstractDataSet):
+    additional_parameters = {}
+    try:
+        # pylint: disable=protected-access
+        additional_parameters = dataset._describe()
+    except AttributeError:
+        pass
+
     namespace[name] = {
         'type': type(dataset).__name__,
         'name': name,
-        # pylint: disable=protected-access
-        **dataset._describe()
+        **additional_parameters
     }
 
 
@@ -269,18 +269,18 @@ def log_data_catalog_metadata(namespace: neptune.run.Handler, catalog: DataCatal
 
 
 def log_pipeline_metadata(namespace: neptune.run.Handler, pipeline: Pipeline):
-    namespace['structure'].upload(File.from_content(pipeline.to_json(), 'json'))
+    namespace['structure'].upload(File.from_content(
+        simplejson.dumps(
+            simplejson.loads(pipeline.to_json()),
+            indent=4,
+            sort_keys=True
+        ),
+        'json'
+    ))
 
 
 def log_run_params(namespace: neptune.run.Handler, run_params: Dict[str, Any]):
     namespace['run_params'] = run_params
-
-
-def log_git_sha(namespace: neptune.run.Handler):
-    try:
-        namespace['git'] = Repo().git.rev_parse("HEAD")
-    except (InvalidGitRepositoryError, GitCommandError):
-        pass
 
 
 def log_command(namespace: neptune.run.Handler):
@@ -290,7 +290,6 @@ def log_command(namespace: neptune.run.Handler):
 class NeptuneHooks:
     def __init__(self):
         self._run_id: Optional[str] = None
-        self._metadata_namespace: Optional[neptune.run.Handler] = None
         self._node_execution_timers: Dict[str, float] = {}
 
     # pylint: disable=unused-argument
@@ -321,27 +320,31 @@ class NeptuneHooks:
                            project=project,
                            custom_run_id=self._run_id,
                            source_files=source_files or None)
-        self._metadata_namespace = run[base_namespace]
+
+        run[INTEGRATION_VERSION_KEY] = __version__
+
+        current_namespace = run[base_namespace]
 
         os.environ.setdefault('NEPTUNE_API_TOKEN', api_token or '')
         os.environ.setdefault('NEPTUNE_PROJECT', project or '')
 
-        log_command(namespace=self._metadata_namespace)
-        log_git_sha(namespace=self._metadata_namespace)
-        log_run_params(namespace=self._metadata_namespace, run_params=run_params)
-        log_data_catalog_metadata(namespace=self._metadata_namespace, catalog=catalog)
-        log_pipeline_metadata(namespace=self._metadata_namespace, pipeline=pipeline)
+        log_command(namespace=current_namespace)
+        log_run_params(namespace=current_namespace, run_params=run_params)
+        log_data_catalog_metadata(namespace=current_namespace, catalog=catalog)
+        log_pipeline_metadata(namespace=current_namespace, pipeline=pipeline)
 
     @hook_impl
     def before_node_run(
             self,
             node: Node,
-            inputs: Dict[str, Any]
+            inputs: Dict[str, Any],
+            catalog: DataCatalog
     ):
-        current_namespace = self._metadata_namespace[f'nodes/{node.short_name}']
+        run = catalog.load('neptune_metadata')
+        current_namespace = run[f'nodes/{node.short_name}']
 
         if inputs:
-            current_namespace['inputs'].log(list(sorted(inputs.keys())))
+            current_namespace['inputs'] = list(sorted(inputs.keys()))
 
         for input_name, input_value in inputs.items():
             if input_name.startswith('params:'):
@@ -362,19 +365,23 @@ class NeptuneHooks:
 
         execution_time = float(time.time() - self._node_execution_timers[node.short_name])
 
-        log_data_catalog_metadata(namespace=self._metadata_namespace, catalog=catalog)
-        current_namespace = self._metadata_namespace[f'nodes/{node.short_name}']
+        run = catalog.load('neptune_metadata')
+        current_namespace = run[f'nodes/{node.short_name}']
 
         if outputs:
-            current_namespace['outputs'].log(list(sorted(outputs.keys())))
+            current_namespace['outputs'] = list(sorted(outputs.keys()))
         current_namespace['execution_time'] = execution_time
+
+        log_data_catalog_metadata(namespace=run, catalog=catalog)
 
     @hook_impl
     def after_pipeline_run(
             self,
             catalog: DataCatalog
     ) -> None:
-        log_data_catalog_metadata(namespace=self._metadata_namespace, catalog=catalog)
+        run = catalog.load('neptune_metadata')
+
+        log_data_catalog_metadata(namespace=run, catalog=catalog)
 
 
 neptune_hooks = NeptuneHooks()
