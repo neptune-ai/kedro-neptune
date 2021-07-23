@@ -24,7 +24,7 @@ def main():
     base_libs = [
         'neptune-client>=0.10.2',
         'kedro>=0.17.0',
-        'GitPython>=3.1.18'
+        'GitPython==3.1.18'
     ]
 
     version = None

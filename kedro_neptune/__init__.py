@@ -25,10 +25,10 @@ import hashlib
 import os
 import sys
 import time
+import urllib.parse
 from typing import Any, Dict, Optional
 
 import click
-import yaml
 from git import Repo
 from git.exc import GitCommandError, InvalidGitRepositoryError
 from kedro.framework.hooks import hook_impl
@@ -85,6 +85,7 @@ INITIAL_NEPTUNE_CREDENTIALS = """neptune:
 
 INITIAL_NEPTUNE_CATALOG = """# example_artifact:
 #   type: kedro_neptune.NeptuneArtifactDataSet
+#   upload_as: raw
 #   dataset:
 #     type: pandas.CSVDataSet
 #     filepath: data/01_raw/iris.csv
@@ -163,12 +164,24 @@ class NeptuneMetadataDataSet(AbstractDataSet):
         return run[base_namespace]
 
 
-def load_neptune_artifact(data_set: AbstractVersionedDataSet):
+def log_artifact_as_raw(namespace: neptune.run.Handler, data_set: AbstractVersionedDataSet):
     # pylint: disable=protected-access
     load_path = get_filepath_str(data_set._get_load_path(), data_set._protocol)
 
     with data_set._fs.open(load_path, **data_set._fs_open_args_load) as fs_file:
-        return fs_file.read()
+        data = fs_file.read()
+
+    path = urllib.parse.urlparse(load_path).path
+    extension = os.path.splitext(path)[1][1:]
+
+    namespace[f'raw'].upload(File.from_content(data, extension=extension))
+
+
+def log_artifact_as_loaded(namespace: neptune.run.Handler, data_set: AbstractDataSet):
+    data = data_set.load()
+
+    namespace['loaded'].upload(File.as_pickle(data))
+    namespace['loaded_type'] = f'{type(data).__module__}.{type(data).__name__}'
 
 
 class NeptuneArtifactDataSet(AbstractDataSet):
@@ -180,11 +193,12 @@ class NeptuneArtifactDataSet(AbstractDataSet):
     >>> ForkingPickler.loads(ForkingPickler.dumps(dataset))
     It requires additional investigation of dynamic type constructions in Python
     """
-    def __new__(cls, dataset: Dict):
+    def __new__(cls, dataset: Dict, **kwargs):
         dataset_class, data_set_args = parse_dataset_definition(dataset)
 
         data_set: dataset_class = dataset_class(**data_set_args)
         data_set.is_neptune_artifact = True
+        data_set.neptune_artifact_upload_as = kwargs.get('upload_as', 'raw')
 
         return data_set
 
@@ -196,22 +210,20 @@ def log_parameters(namespace: neptune.run.Handler, catalog: DataCatalog):
 
 def log_dataset_metadata(namespace: neptune.run.Handler, name: str, dataset: AbstractDataSet):
     namespace[name] = {
-        'type': type(dataset).__name__,
+        'type': f'{type(dataset).__module__}.{type(dataset).__name__}',
         'name': name,
         # pylint: disable=protected-access
         **dataset._describe()
     }
 
 
-def log_artifact(namespace: neptune.run.Handler, name: str, dataset: AbstractVersionedDataSet):
-    try:
-        file_to_upload = File.create_from(dataset.load())
-    except TypeError:
-        file_to_upload = File(
-            content=load_neptune_artifact(dataset)
-        )
-
-    namespace[f'{name}/data'].upload(file_to_upload)
+def log_artifact(namespace: neptune.run.Handler, name: str, upload_as: str, dataset: AbstractVersionedDataSet):
+    if upload_as == 'raw':
+        log_artifact_as_raw(namespace[name], data_set=dataset)
+    elif upload_as == 'loaded':
+        log_artifact_as_loaded(namespace[name], data_set=dataset)
+    else:
+        raise ValueError('Unknown value for upload_as')
 
 
 def log_data_catalog_metadata(namespace: neptune.run.Handler, catalog: DataCatalog):
@@ -225,7 +237,12 @@ def log_data_catalog_metadata(namespace: neptune.run.Handler, catalog: DataCatal
                 log_dataset_metadata(namespace=namespace, name=name, dataset=dataset)
 
             if hasattr(dataset, 'is_neptune_artifact') and dataset.is_neptune_artifact:
-                log_artifact(namespace=namespace, name=name, dataset=dataset)
+                log_artifact(
+                    namespace=namespace,
+                    name=name,
+                    dataset=dataset,
+                    upload_as=getattr(dataset, 'neptune_artifact_upload_as') or 'raw'
+                )
 
 
 def log_pipeline_metadata(namespace: neptune.run.Handler, pipeline: Pipeline):
