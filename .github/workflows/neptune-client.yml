@@ -20,6 +20,9 @@ jobs:
       - name: Lint
         run : |
           python -m pylint -j 0 -f parseable kedro_neptune
+      - name: Build and test
+        run: |
+          py.test
 
   publish:
     needs: test
