@@ -1,0 +1,3 @@
+planets@neptune:
+  type: kedro_neptune.NeptuneFileDataSet
+  filepath: data/planets/planets.csv

@@ -78,7 +78,7 @@ INITIAL_NEPTUNE_CONFIG = """neptune:
     base_namespace: {base_namespace}
     
     #LOGGING
-    upload_source_files: ['**/*.py',  '{config}/base/*.yml']
+    upload_source_files: ['**/*.py',  'conf/{config}/*.yml']
 """
 
 
