@@ -13,6 +13,7 @@ def main():
         'dev': [
             'psutil==5.6.6',
             'pylint',
+            'pip>=21.2.1',
             'pylintfileheader',
             'pytest>=5.0',
             'pytest-cov==2.10.1',
