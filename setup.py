@@ -12,8 +12,8 @@ def main():
     extras = {
         'dev': [
             'psutil==5.6.6',
-            'pylint==1.9.5',
-            'pylintfileheader==0.0.2',
+            'pylint',
+            'pylintfileheader',
             'pytest>=5.0',
             'pytest-cov==2.10.1',
             'pytest-xdist==2.2.0',
