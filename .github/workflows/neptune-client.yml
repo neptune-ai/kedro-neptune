@@ -19,7 +19,7 @@ jobs:
           pip install -e .[dev]
       - name: Lint
         run : |
-          python -m pylint -j 0 -f parseable kedro_neptune
+          python -m pylint -j 0 -f parseable kedro_neptune tests
       - name: Build and test
         run: |
           py.test

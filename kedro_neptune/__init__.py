@@ -365,6 +365,7 @@ class NeptuneHooks:
             catalog: DataCatalog,
             outputs: Dict[str, Any]
     ) -> None:
+        # pylint: disable=protected-access
         execution_time = float(time.time() - self._node_execution_timers[node.short_name])
 
         run = catalog.load('neptune_metadata')
@@ -382,6 +383,7 @@ class NeptuneHooks:
             self,
             catalog: DataCatalog
     ) -> None:
+        # pylint: disable=protected-access
         run = catalog.load('neptune_metadata')
         log_data_catalog_metadata(namespace=run, catalog=catalog)
         run._run.sync()

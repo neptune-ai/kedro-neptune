@@ -1,7 +1,24 @@
-from kedro.framework.session import KedroSession
-import hashlib
+#
+# Copyright (c) 2021, Neptune Labs Sp. z o.o.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 import os
+import hashlib
 from typing import Dict, Any, Optional, List
+
+from kedro.framework.session import KedroSession
+
 
 try:
     # neptune-client=0.9.0 package structure
@@ -11,7 +28,12 @@ except ImportError:
     import neptune
 
 
-def run_pipeline(project, project_path, run_params: Dict[str, Any] = {}, session_params: Dict[str, Any] = {}):
+def run_pipeline(
+        project: str,
+        project_path: str,
+        run_params: Dict[str, Any],
+        session_params: Dict[str, Any]
+):
     if 'NEPTUNE_CUSTOM_RUN_ID' in os.environ:
         del os.environ['NEPTUNE_CUSTOM_RUN_ID']
 
@@ -45,6 +67,7 @@ def check_dataset_metadata(run: neptune.Run, dataset_namespace: str):
 
 
 def check_node_metadata(run: neptune.Run, node_namespace: str, inputs: List, outputs: Optional[List] = None):
+    # pylint: disable=eval-used
     assert run.exists(node_namespace)
     assert run.exists(f'{node_namespace}/execution_time')
     assert run.exists(f'{node_namespace}/inputs')
