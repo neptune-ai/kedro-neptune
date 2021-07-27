@@ -11,14 +11,10 @@ def main():
 
     extras = {
         'dev': [
-            'psutil==5.6.6',
             'pylint',
-            'pip>=21.2.1',
             'pylintfileheader',
             'pytest>=5.0',
             'pytest-cov==2.10.1',
-            'pytest-xdist==2.2.0',
-            'pytest-timeout==1.4.2',
             'neptune-client[optuna,fastai]>=0.10.2'
         ]
     }
