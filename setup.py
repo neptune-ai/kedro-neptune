@@ -18,7 +18,6 @@ def main():
             'pytest-cov==2.10.1',
             'pytest-xdist==2.2.0',
             'pytest-timeout==1.4.2',
-            'matplotlib==3.2',
             'neptune-client[optuna,fastai]>=0.10.2'
         ]
     }
