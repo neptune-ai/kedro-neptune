@@ -87,24 +87,20 @@ class Objective(object):
         return probs[0]
 
 
-def optimize(model: fastai.tabular.model.TabularModel):
-    run = neptune.init(
-        capture_stderr=False,
-        capture_stdout=False,
-        capture_hardware_metrics=False
-    )
-
+def optimize(neptune_metadata: neptune.run.Handler, model: fastai.tabular.model.TabularModel):
     study = optuna.create_study(direction="minimize")
     study.optimize(
-        Objective(neptune_run=run, model=model),
+        Objective(neptune_run=neptune_metadata._run, model=model),
         n_trials=5,
         callbacks=[
             optuna_utils.NeptuneCallback(
-                run=run,
+                run=neptune_metadata._run,
                 base_namespace='kedro/moons_classifier'
             )
         ]
     )
+
+    return study.best_params
 
 
 def create_pipeline(**kwargs):
@@ -124,8 +120,8 @@ def create_pipeline(**kwargs):
             ),
             node(
                 optimize,
-                ["model"],
-                None,
+                ["neptune_metadata", "model"],
+                'best_params',
                 name="optimize",
             )
         ]

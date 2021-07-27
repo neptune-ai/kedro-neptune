@@ -17,9 +17,8 @@ def distances(planets: pd.DataFrame) -> Any:
     ]]
 
 
-def furthest(neptune_metadata: neptune.Run, distances_to_planets: pd.DataFrame) -> Dict[str, Any]:
-    furthest_planet = distances_to_planets.iloc[distances_to_planets['Distance from Sun'].argmax()]
-    neptune_metadata['furthest_planet/name'] = furthest_planet.Planet
+def furthest(distances_to_planets: pd.DataFrame) -> Dict[str, Any]:
+    furthest_planet = distances_to_planets.iloc[distances_to_planets['Distance from Sun'].argmax()]\
 
     return dict(
         furthest_planet_name=furthest_planet.Planet,
@@ -27,13 +26,23 @@ def furthest(neptune_metadata: neptune.Run, distances_to_planets: pd.DataFrame) 
     )
 
 
-def travel_time(neptune_metadata: neptune.Run, furthest_planet_distance: float, travel_speed: float) -> float:
+def travel_time(furthest_planet_distance: float, furthest_planet_name: str, travel_speed: float) -> float:
     travel_hours = furthest_planet_distance / travel_speed
 
+    neptune_metadata = neptune.init(
+        capture_stdout=False,
+        capture_stderr=False,
+        capture_hardware_metrics=False,
+        source_files=[]
+    )
+
+    neptune_metadata['furthest_planet/name'] = furthest_planet_name
     neptune_metadata['furthest_planet/travel_hours'] = travel_hours
     neptune_metadata['furthest_planet/travel_days'] = math.ceil(travel_hours / 24.0)
     neptune_metadata['furthest_planet/travel_months'] = math.ceil(travel_hours / 720.0)
     neptune_metadata['furthest_planet/travel_years'] = math.ceil(travel_hours / 720.0 / 365.0)
+
+    neptune_metadata.sync()
 
     return travel_hours
 
@@ -49,7 +58,7 @@ def create_pipeline(**kwargs):
             ),
             node(
                 furthest,
-                ["neptune_metadata", "distances_to_planets"],
+                ["distances_to_planets"],
                 dict(
                     furthest_planet_name="furthest_planet_name",
                     furthest_planet_distance="furthest_planet_distance"
@@ -58,7 +67,7 @@ def create_pipeline(**kwargs):
             ),
             node(
                 travel_time,
-                ["neptune_metadata", "furthest_planet_distance", "params:travel_speed"],
+                ["furthest_planet_distance", "furthest_planet_name", "params:travel_speed"],
                 'travel_hours',
                 name="travel_time",
             )
