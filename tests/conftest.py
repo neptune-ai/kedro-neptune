@@ -30,14 +30,13 @@ except ImportError:
 
 def run_pipeline(
         project: str,
-        project_path: str,
         run_params: Dict[str, Any],
         session_params: Dict[str, Any]
 ):
     if 'NEPTUNE_CUSTOM_RUN_ID' in os.environ:
         del os.environ['NEPTUNE_CUSTOM_RUN_ID']
 
-    with KedroSession.create(project, project_path, **session_params) as session:
+    with KedroSession.create(project, **session_params) as session:
         session.run(**run_params)
 
         run_id = session.store["session_id"]
