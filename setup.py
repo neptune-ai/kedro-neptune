@@ -11,19 +11,14 @@ def main():
 
     extras = {
         'dev': [
-            'freezegun==1.1.0',
-            'mock==2.0.0',
-            'munch==2.3.2',
             'psutil==5.6.6',
             'pylint==1.9.5',
             'pylintfileheader==0.0.2',
             'pytest>=5.0',
             'pytest-cov==2.10.1',
             'pytest-xdist==2.2.0',
-            'tox==3.6.1',
             'pytest-timeout==1.4.2',
             'matplotlib==3.2',
-            'pytest-mock==3.3.1',
             'neptune-client[optuna,fastai]>=0.10.2'
         ]
     }
