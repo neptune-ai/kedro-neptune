@@ -306,7 +306,7 @@ class NeptuneHooks:
             run_id: str,
     ) -> None:
         self._run_id = hashlib.md5(run_id.encode()).hexdigest()
-        os.environ.setdefault('NEPTUNE_CUSTOM_RUN_ID', self._run_id)
+        os.environ['NEPTUNE_CUSTOM_RUN_ID'] = self._run_id
 
         catalog.add(
             data_set_name='neptune_metadata',
@@ -331,8 +331,8 @@ class NeptuneHooks:
 
         current_namespace = run[base_namespace]
 
-        os.environ.setdefault('NEPTUNE_API_TOKEN', api_token or '')
-        os.environ.setdefault('NEPTUNE_PROJECT', project or '')
+        os.environ['NEPTUNE_API_TOKEN'] = api_token or ''
+        os.environ['NEPTUNE_PROJECT'] = project or ''
 
         log_command(namespace=current_namespace)
         log_run_params(namespace=current_namespace, run_params=run_params)
@@ -371,12 +371,11 @@ class NeptuneHooks:
         current_namespace = run[f'nodes/{node.short_name}']
         current_namespace['execution_time'] = execution_time
 
-        print(f'After {node.short_name}')
-
         if outputs:
             current_namespace['outputs'] = list(sorted(outputs.keys()))
 
         log_data_catalog_metadata(namespace=run, catalog=catalog)
+        run._run.sync()
 
     @hook_impl
     def after_pipeline_run(
@@ -384,8 +383,8 @@ class NeptuneHooks:
             catalog: DataCatalog
     ) -> None:
         run = catalog.load('neptune_metadata')
-
         log_data_catalog_metadata(namespace=run, catalog=catalog)
+        run._run.sync()
 
 
 neptune_hooks = NeptuneHooks()

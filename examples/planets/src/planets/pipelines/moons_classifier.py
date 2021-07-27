@@ -99,6 +99,7 @@ def optimize(neptune_metadata: neptune.run.Handler, model: fastai.tabular.model.
             )
         ]
     )
+    neptune_metadata._run.wait()
 
     return study.best_params
 

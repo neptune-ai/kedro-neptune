@@ -12,7 +12,7 @@ from tests.conftest import (
     check_node_metadata
 )
 
-EXPECTED_SYNC_TIME = 240
+EXPECTED_SYNC_TIME = 0
 
 
 class TestPlanets:
@@ -108,34 +108,31 @@ class TestPlanets:
         assert run.exists('kedro/moons_classifier/trials/trials/0/io_files')
         assert run.exists('kedro/moons_classifier/trials/trials/0/config')
 
-    # def test_sequential(self):
-    #     custom_run_id = run_pipeline(project="planets", project_path="examples/planets")
-    #     time.sleep(EXPECTED_SYNC_TIME)
-    #     run = prepare_testing_job(custom_run_id)
-    #     self._test_planets_structure(run)
-    #
-    # def test_parameters(self):
-    #     custom_run_id = run_pipeline(
-    #         project="planets",
-    #         project_path="examples/planets",
-    #         session_params={
-    #             'extra_params': {
-    #                 'travel_speed': 40000
-    #             }
-    #         }
-    #     )
-    #     time.sleep(EXPECTED_SYNC_TIME)
-    #     run = prepare_testing_job(custom_run_id)
-    #     self._test_planets_structure(run, travel_speed=40000)
-
     def test_parallel(self):
         custom_run_id = run_pipeline(
             project="planets",
             project_path="examples/planets",
             run_params={
-                'runner': ParallelRunner(1)
+                'runner': ParallelRunner(2)
             }
         )
-        time.sleep(EXPECTED_SYNC_TIME)
         run = prepare_testing_job(custom_run_id)
         self._test_planets_structure(run)
+
+    def test_sequential(self):
+        custom_run_id = run_pipeline(project="planets", project_path="examples/planets")
+        run = prepare_testing_job(custom_run_id)
+        self._test_planets_structure(run)
+
+    def test_parameters(self):
+        custom_run_id = run_pipeline(
+            project="planets",
+            project_path="examples/planets",
+            session_params={
+                'extra_params': {
+                    'travel_speed': 40000
+                }
+            }
+        )
+        run = prepare_testing_job(custom_run_id)
+        self._test_planets_structure(run, travel_speed=40000)
