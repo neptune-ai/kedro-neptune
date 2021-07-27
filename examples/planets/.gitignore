@@ -24,7 +24,7 @@ logs/**
 
 # also keep the example dataset
 !data/planets/planets.csv
-
+!data/planets/logo.png
 
 ##########################
 # Common files

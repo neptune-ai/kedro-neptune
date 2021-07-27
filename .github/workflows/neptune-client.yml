@@ -22,7 +22,7 @@ jobs:
           python -m pylint -j 0 -f parseable kedro_neptune tests
       - name: Build and test
         run: |
-          PYTHONPATH=$PYTHONPATH:examples/planets/src py.test
+          cd examples/planets && PYTHONPATH=$PYTHONPATH:examples/planets/src py.test
 
   publish:
     needs: test
