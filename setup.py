@@ -27,7 +27,7 @@ def main():
     base_libs = [
         'neptune-client>=0.10.2',
         'kedro>=0.17.0',
-        'simplejson==3.17.3'
+        'ruamel.yaml==0.17.10',
     ]
 
     version = None

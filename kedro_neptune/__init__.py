@@ -21,15 +21,16 @@ __all__ = [
     'init'
 ]
 
-import hashlib
 import os
 import sys
+import json
 import time
+import hashlib
 import urllib.parse
 from typing import Any, Dict, Optional
 
 import click
-import simplejson
+from ruamel.yaml import YAML
 from kedro.framework.hooks import hook_impl
 from kedro.framework.project import settings
 from kedro.framework.session import KedroSession, get_current_session
@@ -72,22 +73,25 @@ def neptune_commands():
     pass
 
 
-INITIAL_NEPTUNE_CONFIG = """neptune:
-    #GLOBAL CONFIG
-    project: {project}
-    base_namespace: {base_namespace}
+INITIAL_NEPTUNE_CONFIG = """\
+neptune:
+#GLOBAL CONFIG
+    project: ''
+    base_namespace: 'kedro'
     
-    #LOGGING
-    upload_source_files: ['**/*.py',  'conf/{config}/*.yml']
+#LOGGING
+    upload_source_files: []
 """
 
 
-INITIAL_NEPTUNE_CREDENTIALS = """neptune:
-  NEPTUNE_API_TOKEN: {api_token}
+INITIAL_NEPTUNE_CREDENTIALS = """\
+neptune:
+  NEPTUNE_API_TOKEN: ''
 """
 
 
-INITIAL_NEPTUNE_CATALOG = """# example_artifact:
+INITIAL_NEPTUNE_CATALOG = """\
+# example_artifact:
 #   type: kedro_neptune.NeptuneFileDataSet
 #   filepath: data/model.pkl
 """
@@ -103,30 +107,37 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
     session = KedroSession(metadata.package_name)
     context = session.load_context()
 
+    yaml = YAML()
     context.credentials_file = context.project_path / settings.CONF_ROOT / 'local' / "credentials_neptune.yml"
 
     if not context.credentials_file.exists():
         with context.credentials_file.open("w") as credentials_file:
-            credentials_file.writelines(INITIAL_NEPTUNE_CREDENTIALS.format(
-                api_token=api_token
-            ))
+            credentials_template = yaml.load(INITIAL_NEPTUNE_CREDENTIALS)
+            credentials_template['neptune']['NEPTUNE_API_TOKEN'] = api_token
+
+            yaml.dump(credentials_template, credentials_file)
+
+            click.echo(f"Created credentials file: {context.credentials_file}")
 
     context.config_file = context.project_path / settings.CONF_ROOT / config / "neptune.yml"
 
     if not context.config_file.exists():
         with context.config_file.open("w") as config_file:
-            config_file.writelines(INITIAL_NEPTUNE_CONFIG.format(
-                project=project,
-                base_namespace=base_namespace,
-                config=config
-            ))
+            config_template = yaml.load(INITIAL_NEPTUNE_CONFIG)
+            config_template['neptune']['project'] = project
+            config_template['neptune']['base_namespace'] = base_namespace
+            config_template['neptune']['upload_source_files'] = ['**/*.py',  f'{settings.CONF_ROOT}/{config}/*.yml']
+
+            yaml.dump(config_template, config_file)
+
+            click.echo(f"Created config file: {context.config_file}")
 
     context.catalog_file = context.project_path / settings.CONF_ROOT / config / "catalog_neptune.yml"
 
     if not context.catalog_file.exists():
         with context.catalog_file.open("w") as catalog_file:
             catalog_file.writelines(INITIAL_NEPTUNE_CATALOG)
-
+            click.echo(f"Created catalog file: {context.catalog_file}")
 
 def get_neptune_config():
     session: KedroSession = get_current_session()
@@ -137,7 +148,7 @@ def get_neptune_config():
 
     api_token = credentials['neptune']['NEPTUNE_API_TOKEN']
     project = config['neptune']['project']
-    base_namespace = config['neptune']['base_namespace'] or 'kedro'
+    base_namespace = config['neptune']['base_namespace']
     source_files = config['neptune']['upload_source_files']
 
     return api_token, project, base_namespace, source_files
@@ -145,10 +156,10 @@ def get_neptune_config():
 
 class NeptuneMetadataDataSet(AbstractDataSet):
     def _save(self, data: Dict[str, Any]) -> None:
-        pass
+        raise NotImplementedError()
 
     def _describe(self) -> Dict[str, Any]:
-        pass
+        return {}
 
     def _exists(self) -> bool:
         return True
@@ -174,12 +185,15 @@ class BinaryFileDataSet(TextDataSet):
             credentials: Dict[str, Any] = None,
             fs_args: Dict[str, Any] = None,
     ) -> None:
-        super(BinaryFileDataSet, self).__init__(
+        super().__init__(
             filepath=filepath,
-            version=None,
+            version=version,
             credentials=credentials,
             fs_args=fs_args
         )
+
+        self._fs_open_args_load.setdefault("mode", "rb")
+        self._fs_open_args_save.setdefault("mode", "wb")
 
     def _describe(self) -> Dict[str, Any]:
         load_path = get_filepath_str(self._get_load_path(), self._protocol)
@@ -189,19 +203,19 @@ class BinaryFileDataSet(TextDataSet):
 
         return dict(
             extension=extension,
-            **super(BinaryFileDataSet, self)._describe()
+            **super()._describe()
         )
 
     def _save(self, data: bytes) -> None:
         load_path = get_filepath_str(self._get_load_path(), self._protocol)
 
-        with self._fs.open(load_path, mode='wb') as fs_file:
-            return fs_file.write(data)
+        with self._fs.open(load_path, mode='rb') as fs_file:
+            return fs_file.read()
 
     def _load(self) -> bytes:
         load_path = get_filepath_str(self._get_load_path(), self._protocol)
 
-        with self._fs.open(load_path, mode='rb') as fs_file:
+        with self._fs.open(load_path, **self._fs_open_args_load) as fs_file:
             return fs_file.read()
 
 
@@ -212,7 +226,7 @@ class NeptuneFileDataSet(BinaryFileDataSet):
         credentials: Dict[str, Any] = None,
         fs_args: Dict[str, Any] = None,
     ):
-        super(NeptuneFileDataSet, self).__init__(
+        super().__init__(
             filepath=filepath,
             version=None,
             credentials=credentials,
@@ -276,8 +290,8 @@ def log_data_catalog_metadata(namespace: neptune.run.Handler, catalog: DataCatal
 
 def log_pipeline_metadata(namespace: neptune.run.Handler, pipeline: Pipeline):
     namespace['structure'].upload(File.from_content(
-        simplejson.dumps(
-            simplejson.loads(pipeline.to_json()),
+        json.dumps(
+            json.loads(pipeline.to_json()),
             indent=4,
             sort_keys=True
         ),
