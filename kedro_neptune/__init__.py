@@ -81,24 +81,33 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
 
     if not context.credentials_file.exists():
         with context.credentials_file.open("w") as credentials_file:
-            yaml.dump({
-                'neptune': {
-                    'NEPTUNE_API_TOKEN': api_token
-                }
-            },
-                credentials_file, default_flow_style=False)
+            yaml.dump(
+                {
+                    'neptune': {
+                        'NEPTUNE_API_TOKEN': api_token
+                    }
+                },
+                credentials_file,
+                default_flow_style=False
+            )
+            click.echo(f"Created credentials file: {context.credentials_file}")
 
     context.config_file = context.project_path / settings.CONF_ROOT / config / "neptune.yml"
 
     if not context.config_file.exists():
         with context.config_file.open("w") as config_file:
-            yaml.dump({
-                'neptune': {
-                    'base_namespace': base_namespace,
-                    'project': project,
-                    'upload_source_files': ['**/*.py', f'{config}/base/*.yml']
-                }
-            }, config_file, default_flow_style=False)
+            yaml.dump(
+                {
+                    'neptune': {
+                        'base_namespace': base_namespace,
+                        'project': project,
+                        'upload_source_files': ['**/*.py', f'{config}/base/*.yml']
+                    }
+                },
+                config_file,
+                default_flow_style=False
+            )
+            click.echo(f"Created config file: {context.config_file}")
 
 
 class NeptuneMetadataDataSet(AbstractDataSet):
@@ -123,7 +132,7 @@ class NeptuneMetadataDataSet(AbstractDataSet):
             credentials = context._get_config_credentials()
             config = context.config_loader.get('neptune**')
 
-            self._base_namespace = config['neptune']['base_namespace'] or 'kedro'
+            self._base_namespace = config['neptune']['base_namespace']
             self._run = neptune.init(api_token=credentials['neptune']['NEPTUNE_API_TOKEN'],
                                      project=config['neptune']['project'],
                                      custom_run_id=self._run_id,
