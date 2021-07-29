@@ -152,4 +152,7 @@ class TestPlanets:
             }
         )
         run = prepare_testing_job(custom_run_id)
-        self._test_planets_structure(run, travel_speed=40000)
+        self._test_planets_structure(
+            run,
+            travel_speed=40000
+        )
