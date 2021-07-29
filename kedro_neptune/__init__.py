@@ -139,6 +139,7 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
             catalog_file.writelines(INITIAL_NEPTUNE_CATALOG)
             click.echo(f"Created catalog file: {context.catalog_file}")
 
+
 def get_neptune_config():
     session: KedroSession = get_current_session()
     context = session.load_context()
@@ -192,9 +193,6 @@ class BinaryFileDataSet(TextDataSet):
             fs_args=fs_args
         )
 
-        self._fs_open_args_load.setdefault("mode", "rb")
-        self._fs_open_args_save.setdefault("mode", "wb")
-
     def _describe(self) -> Dict[str, Any]:
         load_path = get_filepath_str(self._get_load_path(), self._protocol)
 
@@ -209,13 +207,13 @@ class BinaryFileDataSet(TextDataSet):
     def _save(self, data: bytes) -> None:
         load_path = get_filepath_str(self._get_load_path(), self._protocol)
 
-        with self._fs.open(load_path, mode='rb') as fs_file:
-            return fs_file.read()
+        with self._fs.open(load_path, mode='wb') as fs_file:
+            return fs_file.write(data)
 
     def _load(self) -> bytes:
         load_path = get_filepath_str(self._get_load_path(), self._protocol)
 
-        with self._fs.open(load_path, **self._fs_open_args_load) as fs_file:
+        with self._fs.open(load_path, mode='rb') as fs_file:
             return fs_file.read()
 
 
