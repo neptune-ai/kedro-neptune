@@ -205,15 +205,15 @@ class BinaryFileDataSet(TextDataSet):
         )
 
     def _save(self, data: bytes) -> None:
-        load_path = get_filepath_str(self._get_load_path(), self._protocol)
+        path = get_filepath_str(self._get_load_path(), self._protocol)
 
-        with self._fs.open(load_path, mode='wb') as fs_file:
+        with self._fs.open(path, mode='wb') as fs_file:
             return fs_file.write(data)
 
     def _load(self) -> bytes:
-        load_path = get_filepath_str(self._get_load_path(), self._protocol)
+        path = get_filepath_str(self._get_load_path(), self._protocol)
 
-        with self._fs.open(load_path, mode='rb') as fs_file:
+        with self._fs.open(path, mode='rb') as fs_file:
             return fs_file.read()
 
 

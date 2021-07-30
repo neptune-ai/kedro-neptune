@@ -15,6 +15,7 @@
 #
 import os
 import hashlib
+from ast import literal_eval
 from typing import Dict, Any, Optional, List
 
 from kedro.framework.session import KedroSession
@@ -57,21 +58,12 @@ def prepare_testing_job(custom_run_id):
         )
 
 
-def check_dataset_metadata(run: neptune.Run, dataset_namespace: str):
-    assert run.exists(f'{dataset_namespace}/filepath')
-    assert run.exists(f'{dataset_namespace}/name')
-    assert run.exists(f'{dataset_namespace}/protocol')
-    assert run.exists(f'{dataset_namespace}/type')
-    assert run.exists(f'{dataset_namespace}/version')
-
-
 def check_node_metadata(run: neptune.Run, node_namespace: str, inputs: List, outputs: Optional[List] = None):
-    # pylint: disable=eval-used
     assert run.exists(node_namespace)
     assert run.exists(f'{node_namespace}/execution_time')
     assert run.exists(f'{node_namespace}/inputs')
-    assert sorted(eval(run[f'{node_namespace}/inputs'].fetch())) == inputs
+    assert sorted(literal_eval(run[f'{node_namespace}/inputs'].fetch())) == inputs
 
     if outputs:
         assert run.exists(f'{node_namespace}/outputs')
-        assert sorted(eval(run[f'{node_namespace}/outputs'].fetch())) == outputs
+        assert sorted(literal_eval(run[f'{node_namespace}/outputs'].fetch())) == outputs
