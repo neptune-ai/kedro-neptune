@@ -1,0 +1,3 @@
+planets:
+  type: pandas.CSVDataSet
+  filepath: data/planets/planets.csv
