@@ -193,9 +193,6 @@ class BinaryFileDataSet(TextDataSet):
             fs_args=fs_args
         )
 
-        self._fs_open_args_load.setdefault("mode", "rb")
-        self._fs_open_args_save.setdefault("mode", "wb")
-
     def _describe(self) -> Dict[str, Any]:
         load_path = get_filepath_str(self._get_load_path(), self._protocol)
 
@@ -208,15 +205,15 @@ class BinaryFileDataSet(TextDataSet):
         )
 
     def _save(self, data: bytes) -> None:
-        load_path = get_filepath_str(self._get_load_path(), self._protocol)
+        path = get_filepath_str(self._get_load_path(), self._protocol)
 
-        with self._fs.open(load_path, **self._fs_open_args_load) as fs_file:
-            return fs_file.read()
+        with self._fs.open(path, mode='wb') as fs_file:
+            return fs_file.write(data)
 
     def _load(self) -> bytes:
-        load_path = get_filepath_str(self._get_load_path(), self._protocol)
+        path = get_filepath_str(self._get_load_path(), self._protocol)
 
-        with self._fs.open(load_path, **self._fs_open_args_load) as fs_file:
+        with self._fs.open(path, mode='rb') as fs_file:
             return fs_file.read()
 
 
@@ -237,12 +234,21 @@ class NeptuneFileDataSet(BinaryFileDataSet):
 
 def log_file_dataset(namespace: neptune.run.Handler, name: str, dataset: NeptuneFileDataSet):
     # pylint: disable=protected-access
-    namespace[name].upload(
-        File.from_content(
-            dataset.load(),
-            extension=dataset._describe().get('extension')
+    if not namespace._run.exists(f'{namespace._path}/{name}'):
+        data = dataset.load()
+        extension = dataset._describe().get('extension')
+
+        try:
+            file = File.create_from(data)
+        except TypeError:
+            file = File.from_content(
+                data,
+                extension=extension
+            )
+
+        namespace[name].upload(
+            file
         )
-    )
 
 
 def log_parameters(namespace: neptune.run.Handler, catalog: DataCatalog):
@@ -312,7 +318,7 @@ class NeptuneHooks:
             run_id: str,
     ) -> None:
         self._run_id = hashlib.md5(run_id.encode()).hexdigest()
-        os.environ.setdefault('NEPTUNE_CUSTOM_RUN_ID', self._run_id)
+        os.environ['NEPTUNE_CUSTOM_RUN_ID'] = self._run_id
 
         catalog.add(
             data_set_name='neptune_metadata',
@@ -337,8 +343,8 @@ class NeptuneHooks:
 
         current_namespace = run[base_namespace]
 
-        os.environ.setdefault('NEPTUNE_API_TOKEN', api_token or '')
-        os.environ.setdefault('NEPTUNE_PROJECT', project or '')
+        os.environ['NEPTUNE_API_TOKEN'] = api_token or ''
+        os.environ['NEPTUNE_PROJECT'] = project or ''
 
         log_command(namespace=current_namespace)
         log_run_params(namespace=current_namespace, run_params=run_params)
@@ -362,8 +368,6 @@ class NeptuneHooks:
             if input_name.startswith('params:'):
                 current_namespace[f'parameters/{input_name[len("params:"):]}'] = input_value
 
-        os.environ['NEPTUNE_MONITORING_NAMESPACE'] = f'monitoring/nodes/{node.short_name}'
-
         self._node_execution_timers[node.short_name] = time.time()
 
     @hook_impl
@@ -373,27 +377,28 @@ class NeptuneHooks:
             catalog: DataCatalog,
             outputs: Dict[str, Any]
     ) -> None:
-        del os.environ['NEPTUNE_MONITORING_NAMESPACE']
-
+        # pylint: disable=protected-access
         execution_time = float(time.time() - self._node_execution_timers[node.short_name])
 
         run = catalog.load('neptune_metadata')
         current_namespace = run[f'nodes/{node.short_name}']
+        current_namespace['execution_time'] = execution_time
 
         if outputs:
             current_namespace['outputs'] = list(sorted(outputs.keys()))
-        current_namespace['execution_time'] = execution_time
 
         log_data_catalog_metadata(namespace=run, catalog=catalog)
+        run._run.sync()
 
     @hook_impl
     def after_pipeline_run(
             self,
             catalog: DataCatalog
     ) -> None:
+        # pylint: disable=protected-access
         run = catalog.load('neptune_metadata')
-
         log_data_catalog_metadata(namespace=run, catalog=catalog)
+        run._run.sync()
 
 
 neptune_hooks = NeptuneHooks()

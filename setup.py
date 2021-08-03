@@ -12,7 +12,10 @@ def main():
     extras = {
         'dev': [
             'pylint',
-            'pylintfileheader'
+            'pylintfileheader',
+            'pytest>=5.0',
+            'pytest-cov==2.10.1',
+            'neptune-client[optuna,fastai]>=0.10.2'
         ]
     }
 
