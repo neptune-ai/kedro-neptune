@@ -45,7 +45,7 @@ from kedro.extras.datasets.text import TextDataSet
 from kedro.pipeline import Pipeline
 from kedro.pipeline.node import Node
 
-from ._version import __version__
+from kedro_neptune import __version__
 
 try:
     # neptune-client=0.9.0+ package structure
