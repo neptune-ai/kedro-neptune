@@ -15,7 +15,6 @@
 #
 
 __all__ = [
-    '__version__',
     'NeptuneMetadataDataSet',
     'neptune_hooks',
     'init'
@@ -45,7 +44,7 @@ from kedro.extras.datasets.text import TextDataSet
 from kedro.pipeline import Pipeline
 from kedro.pipeline.node import Node
 
-from kedro_neptune import __version__
+from kedro_neptune._version import get_versions
 
 try:
     # neptune-client=0.9.0+ package structure
@@ -61,6 +60,8 @@ except ImportError:
     from neptune.internal.utils.paths import join_paths
 
 INTEGRATION_VERSION_KEY = 'source_code/integrations/kedro-neptune'
+
+__version__ = get_versions()['version']
 
 
 @click.group(name="Neptune")
