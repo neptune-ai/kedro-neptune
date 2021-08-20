@@ -122,19 +122,19 @@ use $NEPTUNE_PROJECT environment variable:""".replace('\n', '')
 @click.option('--config', default='base')
 @click.pass_obj
 def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace: str, config: str):
-    """CLI command for initializing Kedro-Neptune plugin.
+    """Command line interface (CLI) command for initializing Kedro-Neptune plugin.
 
     Kedro-Neptune plugin lets you log metadata related to Kedro pipelines to `Neptune.ai ML metadata store`_
     so that you can monitor, visualize, and compare your pipelines and node outputs in the Neptune UI.
 
-    After initializing it, whenever you run '$ kedro run' you will log:
+    After initializing it, whenever you run '$ kedro run', you will log:
     * parameters
     * pipeline execution configuration (run_params)
     * metadata about Kedro DataSets
     * hardware consumption and node execution times
     * configuration files from the conf/base directory
     * full Kedro run command
-    * any additional metadata like metrics, charts, or images that you logged from inside of your node functons.
+    * any additional metadata like metrics, charts, or images that you logged from inside of your node functions.
 
     See `example project in Neptune`_.
     You may also want to check `Neptune-Kedro integration docs page`_.
@@ -145,7 +145,7 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
             Default is '$NEPTUNE_API_TOKEN'. See `How to find your Neptune project name`_.
         base-namespace (string): Namespace in Neptune where all the Kedro-related metadata is logged.
             Default is 'kedro'.
-        config (string): Name of the Sub directory inside of the Kedro 'conf' directory for
+        config (string): Name of the Subdirectory inside of the Kedro 'conf' directory for
             configuration and catalog files. Default is 'base'.
     Returns:
         ``dict`` with all summary items.
@@ -292,10 +292,10 @@ class BinaryFileDataSet(TextDataSet):
 
 
 class NeptuneFileDataSet(BinaryFileDataSet):
-    """A NeptuneFileDataSet is a Kedro Data Set that lets you log files to Neptune.
+    """NeptuneFileDataSet is a Kedro Data Set that lets you log files to Neptune.
 
     It can be any file on the POSIX compatible filesystem.
-    To log it you need to define a the NeptuneFileDataSet in any Kedro catalog including catalog.yml.
+    To log it, you need to define the NeptuneFileDataSet in any Kedro catalog, including catalog.yml.
 
     You may also want to check `Neptune-Kedro integration docs page`_.
     Args:
