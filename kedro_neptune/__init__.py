@@ -16,6 +16,8 @@
 
 __all__ = [
     'NeptuneMetadataDataSet',
+    'NeptuneFileDataSet',
+    'NeptuneHooks',
     'neptune_hooks',
     'init'
 ]
