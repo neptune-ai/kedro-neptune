@@ -88,7 +88,7 @@ neptune:
 
 INITIAL_NEPTUNE_CREDENTIALS = """\
 neptune:
-  api_token: $NEPTUNE_API_TOKEN # for environment variables start with $  
+  api_token: $NEPTUNE_API_TOKEN
 """
 
 INITIAL_NEPTUNE_CATALOG = """\
@@ -108,14 +108,15 @@ INITIAL_NEPTUNE_CATALOG = """\
 #
 """
 
+PROMPT_API_TOKEN = """Pass Neptune API Token or press enter if you want to \
+use $NEPTUNE_API_TOKEN environment variable:""".replace('\n', '')
+PROMPT_PROJECT_NAME = """Pass Neptune project name in a WORKSPACE/PROJECT format or press enter if you want to \
+use $NEPTUNE_PROJECT environment variable:""".replace('\n', '')
+
 
 @neptune_commands.command()
-@click.option('--api-token',
-              prompt='Pass Neptune API Token, press enter if you want to use NEPTUNE_API_TOKEN environment variable:',
-              default='NEPTUNE_API_TOKEN')
-@click.option('--project',
-              prompt='Pass Neptune project name, press enter if you want to use NEPTUNE_PROJECT environment variable:',
-              default=lambda: os.environ.get('NEPTUNE_PROJECT'))
+@click.option('--api-token', prompt=PROMPT_API_TOKEN, default='$NEPTUNE_API_TOKEN')
+@click.option('--project', prompt=PROMPT_PROJECT_NAME, default='$NEPTUNE_PROJECT')
 @click.option('--base-namespace', default='kedro')
 @click.option('--config', default='base')
 @click.pass_obj
@@ -163,19 +164,21 @@ def get_neptune_config():
     credentials = context._get_config_credentials()
     config = context.config_loader.get('neptune**')
 
-    api_token = _parse_api_token_input(credentials['neptune']['api_token'])
-    project = config['neptune']['project']
+    api_token = _parse_config_input(credentials['neptune']['api_token'])
+    project = _parse_config_input(config['neptune']['project'])
     base_namespace = config['neptune']['base_namespace']
     source_files = config['neptune']['upload_source_files']
 
     return api_token, project, base_namespace, source_files
 
-def _parse_api_token_input(api_token_input):
-    if api_token_input.startswith('$'):
-        api_token=os.environ.get(api_token_input[1:])
+
+def _parse_config_input(config_input):
+    if config_input.startswith('$'):
+        parsed_input = os.environ.get(config_input[1:])
     else:
-        api_token = api_token_input
-    return api_token
+        parsed_input = config_input
+    return parsed_input
+
 
 class NeptuneMetadataDataSet(AbstractDataSet):
     def _save(self, data: Dict[str, Any]) -> None:
