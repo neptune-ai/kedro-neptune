@@ -77,13 +77,13 @@ def neptune_commands():
 INITIAL_NEPTUNE_CONFIG = """\
 neptune:
 #GLOBAL CONFIG
-  project: common/kedro-integration
-  base_namespace: kedro
+  project: ''
+  base_namespace: 'kedro'
 
 #LOGGING
   upload_source_files:
   # - '**/*.py'
-  - conf/base/*.yml
+  - 'conf/base/*.yml'
 """
 
 INITIAL_NEPTUNE_CREDENTIALS = """\
