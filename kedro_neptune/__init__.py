@@ -15,21 +15,22 @@
 #
 
 __all__ = [
-    'NeptuneMetadataDataSet',
+    'NeptuneRunDataSet',
+    'NeptuneFileDataSet',
     'neptune_hooks',
     'init'
 ]
 
+import hashlib
+import json
 import os
 import sys
-import json
 import time
-import hashlib
 import urllib.parse
 from typing import Any, Dict, Optional
 
 import click
-from ruamel.yaml import YAML
+from kedro.extras.datasets.text import TextDataSet
 from kedro.framework.hooks import hook_impl
 from kedro.framework.project import settings
 from kedro.framework.session import KedroSession, get_current_session
@@ -40,9 +41,9 @@ from kedro.io.core import (
     get_filepath_str,
     Version,
 )
-from kedro.extras.datasets.text import TextDataSet
 from kedro.pipeline import Pipeline
 from kedro.pipeline.node import Node
+from ruamel.yaml import YAML
 
 from kedro_neptune._version import get_versions
 
@@ -64,12 +65,12 @@ INTEGRATION_VERSION_KEY = 'source_code/integrations/kedro-neptune'
 __version__ = get_versions()['version']
 
 
-@click.group(name="Neptune")
+@click.group(name='Neptune')
 def commands():
     """Kedro plugin for logging with Neptune.ai"""
 
 
-@commands.group(name="neptune")
+@commands.group(name='neptune')
 def neptune_commands():
     pass
 
@@ -77,68 +78,132 @@ def neptune_commands():
 INITIAL_NEPTUNE_CONFIG = """\
 neptune:
 #GLOBAL CONFIG
-    project: ''
-    base_namespace: 'kedro'
-    
-#LOGGING
-    upload_source_files: []
-"""
+  project: ''
+  base_namespace: 'kedro'
 
+#LOGGING
+  upload_source_files:
+  # - '**/*.py'
+  - 'conf/base/*.yml'
+"""
 
 INITIAL_NEPTUNE_CREDENTIALS = """\
 neptune:
-  NEPTUNE_API_TOKEN: ''
+  api_token: $NEPTUNE_API_TOKEN
 """
-
 
 INITIAL_NEPTUNE_CATALOG = """\
+# You can log files to Neptune via NeptuneFileDataSet
+#
 # example_artifact:
 #   type: kedro_neptune.NeptuneFileDataSet
-#   filepath: data/model.pkl
+#   filepath: data/06_models/clf_model.pkl
+#
+# If you want to log existing Kedro Dataset to Neptune add @neptune to the DataSet name
+#
+# example_iris_data@neptune:
+#   type: kedro_neptune.NeptuneFileDataSet
+#   filepath: data/01_raw/iris.csv
+#
+# You can use kedro_neptune.NeptuneFileDataSet in any catalog including conf/base/catalog.yml
+#
 """
+
+PROMPT_API_TOKEN = """Pass Neptune API Token or press enter if you want to \
+use $NEPTUNE_API_TOKEN environment variable:""".replace('\n', '')
+PROMPT_PROJECT_NAME = """Pass Neptune project name in a WORKSPACE/PROJECT format or press enter if you want to \
+use $NEPTUNE_PROJECT environment variable:""".replace('\n', '')
 
 
 @neptune_commands.command()
-@click.option('--api-token', prompt='API Token', default=lambda: os.environ.get("NEPTUNE_API_TOKEN"))
-@click.option('--project', prompt=True, default=lambda: os.environ.get("NEPTUNE_PROJECT"))
-@click.option('--base-namespace', default="kedro")
-@click.option('--config', default="base")
+@click.option('--api-token', prompt=PROMPT_API_TOKEN, default='$NEPTUNE_API_TOKEN')
+@click.option('--project', prompt=PROMPT_PROJECT_NAME, default='$NEPTUNE_PROJECT')
+@click.option('--base-namespace', default='kedro')
+@click.option('--config', default='base')
 @click.pass_obj
 def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace: str, config: str):
+    """Command line interface (CLI) command for initializing Kedro-Neptune plugin.
+
+    Kedro-Neptune plugin lets you log metadata related to Kedro pipelines to `Neptune.ai ML metadata store`_
+    so that you can monitor, visualize, and compare your pipelines and node outputs in the Neptune UI.
+
+    After initializing it, whenever you run '$ kedro run', you will log:
+    * parameters
+    * pipeline execution configuration (run_params)
+    * metadata about Kedro DataSets
+    * hardware consumption and node execution times
+    * configuration files from the conf/base directory
+    * full Kedro run command
+    * any additional metadata like metrics, charts, or images that you logged from inside of your node functions.
+
+    See `example project in Neptune`_.
+    You may also want to check `Neptune-Kedro integration docs page`_.
+    Args:
+        api-token (string:) Neptune API token or the environment variable name where it is stored.
+            Default is '$NEPTUNE_API_TOKEN'. See `How to find your Neptune API token`_.
+        project (string): Neptune project name or the environment variable name where it is stored.
+            Default is '$NEPTUNE_API_TOKEN'. See `How to find your Neptune project name`_.
+        base-namespace (string): Namespace in Neptune where all the Kedro-related metadata is logged.
+            Default is 'kedro'.
+        config (string): Name of the Subdirectory inside of the Kedro 'conf' directory for
+            configuration and catalog files. Default is 'base'.
+    Returns:
+        ``dict`` with all summary items.
+    Examples:
+
+        Pass required arguments directly
+        $ kedro neptune init --api-token $NEPTUNE_API_TOKEN --project common/kedro-integration
+
+        Use prompts to fill the required arguments
+        $ kedro neptune init
+
+    You may also want to check `Neptune-Kedro integration docs page`_.
+
+    .. _Neptune.ai ML metadata store:
+        https://neptune.ai/
+    .. _example project in Neptune:
+        https://app.neptune.ai/o/common/org/kedro-integration/e/KED-572
+    .. _Neptune-Kedro integration docs page:
+       https://docs.neptune.ai/integrations-and-supported-tools/pipeline-and-orchestration/kedro
+    .. _How to find your Neptune project name:
+       https://docs.neptune.ai/getting-started/installation#setting-the-project-name
+    .. _How to find your Neptune API token:
+       https://docs.neptune.ai/getting-started/installation#authentication-neptune-api-token
+    """
     session = KedroSession(metadata.package_name)
     context = session.load_context()
 
     yaml = YAML()
-    context.credentials_file = context.project_path / settings.CONF_ROOT / 'local' / "credentials_neptune.yml"
+    context.credentials_file = context.project_path / settings.CONF_ROOT / 'local' / 'credentials_neptune.yml'
 
     if not context.credentials_file.exists():
-        with context.credentials_file.open("w") as credentials_file:
+        with context.credentials_file.open('w') as credentials_file:
             credentials_template = yaml.load(INITIAL_NEPTUNE_CREDENTIALS)
-            credentials_template['neptune']['NEPTUNE_API_TOKEN'] = api_token
+            credentials_template['neptune']['api_token'] = api_token
 
             yaml.dump(credentials_template, credentials_file)
 
-            click.echo(f"Created credentials file: {context.credentials_file}")
+            click.echo(f'Created credentials_neptune.yml configuration file: {context.credentials_file}')
 
-    context.config_file = context.project_path / settings.CONF_ROOT / config / "neptune.yml"
+    context.config_file = context.project_path / settings.CONF_ROOT / config / 'neptune.yml'
 
     if not context.config_file.exists():
-        with context.config_file.open("w") as config_file:
+        with context.config_file.open('w') as config_file:
             config_template = yaml.load(INITIAL_NEPTUNE_CONFIG)
             config_template['neptune']['project'] = project
             config_template['neptune']['base_namespace'] = base_namespace
-            config_template['neptune']['upload_source_files'] = ['**/*.py',  f'{settings.CONF_ROOT}/{config}/*.yml']
+            config_template['neptune']['upload_source_files'] = ['**/*.py', f'{settings.CONF_ROOT}/{config}/*.yml']
 
             yaml.dump(config_template, config_file)
 
-            click.echo(f"Created config file: {context.config_file}")
+            click.echo(f'Creating neptune.yml configuration file in: {context.config_file}')
 
-    context.catalog_file = context.project_path / settings.CONF_ROOT / config / "catalog_neptune.yml"
+    context.catalog_file = context.project_path / settings.CONF_ROOT / config / 'catalog_neptune.yml'
 
     if not context.catalog_file.exists():
-        with context.catalog_file.open("w") as catalog_file:
+        with context.catalog_file.open('w') as catalog_file:
             catalog_file.writelines(INITIAL_NEPTUNE_CATALOG)
-            click.echo(f"Created catalog file: {context.catalog_file}")
+            click.echo(f'Creating catalog_neptune.yml configuration file: {context.catalog_file}')
 
 
 def get_neptune_config():
@@ -148,15 +213,23 @@ def get_neptune_config():
     credentials = context._get_config_credentials()
     config = context.config_loader.get('neptune**')
 
-    api_token = credentials['neptune']['NEPTUNE_API_TOKEN']
-    project = config['neptune']['project']
+    api_token = _parse_config_input(credentials['neptune']['api_token'])
+    project = _parse_config_input(config['neptune']['project'])
     base_namespace = config['neptune']['base_namespace']
     source_files = config['neptune']['upload_source_files']
 
     return api_token, project, base_namespace, source_files
 
 
-class NeptuneMetadataDataSet(AbstractDataSet):
+def _parse_config_input(config_input):
+    if config_input.startswith('$'):
+        parsed_input = os.environ.get(config_input[1:])
+    else:
+        parsed_input = config_input
+    return parsed_input
+
+
+class NeptuneRunDataSet(AbstractDataSet):
     def _save(self, data: Dict[str, Any]) -> None:
         raise NotImplementedError()
 
@@ -219,11 +292,47 @@ class BinaryFileDataSet(TextDataSet):
 
 
 class NeptuneFileDataSet(BinaryFileDataSet):
+    """NeptuneFileDataSet is a Kedro Data Set that lets you log files to Neptune.
+
+    It can be any file on the POSIX compatible filesystem.
+    To log it, you need to define the NeptuneFileDataSet in any Kedro catalog, including catalog.yml.
+
+    You may also want to check `Neptune-Kedro integration docs page`_.
+    Args:
+        filepath (string): Filepath in POSIX format to a text file prefixed with a protocol like s3://.
+            Same as fo `Kedro TextDataSet`_.
+        credentials (dict, optional): Credentials required to get access to the underlying filesystem.
+            Same as for `Kedro TextDataSet`_.
+        fs_args (dict, optional): Extra arguments to pass into underlying filesystem class constructor.
+            Same as fo `Kedro TextDataSet`_.
+    Examples:
+        Log a file to Neptune from any Kedro catalog YML file.
+
+        example_model_file:
+            type: kedro_neptune.NeptuneFileDataSet
+            filepath: data/06_models/clf.pkl
+
+        Log a file to Neptune that has already been defined as a Kedro DataSet in any catalog YML file.
+
+        example_iris_data:
+            type: pandas.CSVDataSet
+            filepath: data/01_raw/iris.csv
+
+        example_iris_data@neptune:
+            type: kedro_neptune.NeptuneFileDataSet
+            filepath: data/01_raw/iris.csv
+
+    You may also want to check `Neptune-Kedro integration docs page`_.
+    .. _Neptune-Kedro integration docs page:
+       https://docs.neptune.ai/integrations-and-supported-tools/pipeline-and-orchestration/kedro
+    .. _Kedro TextDataSet:
+        https://kedro.readthedocs.io/en/stable/kedro.extras.datasets.text.TextDataSet.html
+    """
     def __init__(
-        self,
-        filepath: str,
-        credentials: Dict[str, Any] = None,
-        fs_args: Dict[str, Any] = None,
+            self,
+            filepath: str,
+            credentials: Dict[str, Any] = None,
+            fs_args: Dict[str, Any] = None,
     ):
         super().__init__(
             filepath=filepath,
@@ -278,7 +387,7 @@ def log_data_catalog_metadata(namespace: neptune.run.Handler, catalog: DataCatal
 
     for name, dataset in catalog._data_sets.items():
         if dataset.exists() and not namespace._run.exists(join_paths(namespace._path, name)):
-            if not isinstance(dataset, MemoryDataSet) and not isinstance(dataset, NeptuneMetadataDataSet):
+            if not isinstance(dataset, MemoryDataSet) and not isinstance(dataset, NeptuneRunDataSet):
                 log_dataset_metadata(namespace=namespace['datasets'], name=name, dataset=dataset)
 
             if isinstance(dataset, NeptuneFileDataSet):
@@ -322,8 +431,8 @@ class NeptuneHooks:
         os.environ['NEPTUNE_CUSTOM_RUN_ID'] = self._run_id
 
         catalog.add(
-            data_set_name='neptune_metadata',
-            data_set=NeptuneMetadataDataSet()
+            data_set_name='neptune_run',
+            data_set=NeptuneRunDataSet()
         )
 
     @hook_impl
@@ -359,7 +468,7 @@ class NeptuneHooks:
             inputs: Dict[str, Any],
             catalog: DataCatalog
     ):
-        run = catalog.load('neptune_metadata')
+        run = catalog.load('neptune_run')
         current_namespace = run[f'nodes/{node.short_name}']
 
         if inputs:
@@ -381,7 +490,7 @@ class NeptuneHooks:
         # pylint: disable=protected-access
         execution_time = float(time.time() - self._node_execution_timers[node.short_name])
 
-        run = catalog.load('neptune_metadata')
+        run = catalog.load('neptune_run')
         current_namespace = run[f'nodes/{node.short_name}']
         current_namespace['execution_time'] = execution_time
 
@@ -397,7 +506,7 @@ class NeptuneHooks:
             catalog: DataCatalog
     ) -> None:
         # pylint: disable=protected-access
-        run = catalog.load('neptune_metadata')
+        run = catalog.load('neptune_run')
         log_data_catalog_metadata(namespace=run, catalog=catalog)
         run._run.sync()
 

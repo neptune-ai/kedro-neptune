@@ -96,7 +96,7 @@ class TestPlanets:
             ['furthest_planet_distance', 'furthest_planet_name']
         )
 
-        check_node_metadata(run, 'kedro/nodes/optimize', ['model', 'neptune_metadata'])
+        check_node_metadata(run, 'kedro/nodes/optimize', ['model', 'neptune_run'])
 
         check_node_metadata(run, 'kedro/nodes/prepare_dataset', ['planets'], ['dataset'])
 

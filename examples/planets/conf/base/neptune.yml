@@ -4,4 +4,6 @@ neptune:
     base_namespace: kedro
     
     #LOGGING
-    upload_source_files: ['**/*.py',  'conf/base/*.yml']
+    upload_source_files:
+        - '**/*.py'
+        - 'conf/base/*.yml'
