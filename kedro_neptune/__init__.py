@@ -247,6 +247,7 @@ class NeptuneRunDataSet(AbstractDataSet):
                            capture_stdout=False,
                            capture_stderr=False,
                            capture_hardware_metrics=False,
+                           capture_traceback=False,
                            source_files=None)
 
         return run[base_namespace]
