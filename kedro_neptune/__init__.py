@@ -300,11 +300,11 @@ class NeptuneFileDataSet(BinaryFileDataSet):
     You may also want to check `Neptune-Kedro integration docs page`_.
     Args:
         filepath (string): Filepath in POSIX format to a text file prefixed with a protocol like s3://.
-            Same as fo `Kedro TextDataSet`_.
+            Same as for `Kedro TextDataSet`_.
         credentials (dict, optional): Credentials required to get access to the underlying filesystem.
             Same as for `Kedro TextDataSet`_.
         fs_args (dict, optional): Extra arguments to pass into underlying filesystem class constructor.
-            Same as fo `Kedro TextDataSet`_.
+            Same as for`Kedro TextDataSet`_.
     Examples:
         Log a file to Neptune from any Kedro catalog YML file.
 
