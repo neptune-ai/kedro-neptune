@@ -25,7 +25,7 @@ def main():
     extras['all'] = all_deps
 
     base_libs = [
-        'neptune-client>=0.10.8',
+        'neptune-client>=0.10.9',
         'kedro>=0.17.0',
         'ruamel.yaml==0.17.10',
     ]
