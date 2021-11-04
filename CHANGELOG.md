@@ -1,7 +1,7 @@
 ## kedro-neptune 0.0.6
 
 ### Features
-- Added `enabled` flag to neptune.yml to maintain that metadata logging into Neptune is enabled ([#19](https://github.com/neptune-ai/kedro-neptune/pull/19))
+- Added `enabled` flag to neptune.yml to maintain that metadata logging into Neptune is enabled ([#20](https://github.com/neptune-ai/kedro-neptune/pull/20))
 
 ## kedro-neptune 0.0.5
 
