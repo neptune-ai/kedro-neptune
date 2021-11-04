@@ -54,6 +54,7 @@ def prepare_testing_job(custom_run_id):
             capture_stderr=False,
             capture_stdout=False,
             capture_hardware_metrics=False,
+            capture_traceback=False,
             source_files=[]
         )
 
