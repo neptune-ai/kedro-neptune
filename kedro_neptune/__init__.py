@@ -27,7 +27,6 @@ import os
 import sys
 import time
 import urllib.parse
-from distutils.util import strtobool
 from collections import namedtuple
 from typing import Any, Dict, Optional
 
@@ -225,7 +224,6 @@ def get_neptune_config() -> NeptuneConfig:
     base_namespace = config['neptune']['base_namespace']
     source_files = config['neptune']['upload_source_files']
     enabled = config['neptune'].get('enabled', 'true')
-    # enabled = strtobool(config['neptune'].get('enabled', 'true'))
 
     return NeptuneConfig(
         api_token=api_token,
