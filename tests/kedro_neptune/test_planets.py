@@ -30,6 +30,8 @@ EXPECTED_SYNC_TIME = 0
 
 class PlanetsTesting:
     def _test_planets_structure(self, run: neptune.Run, travel_speed: int = 10000):
+        run.wait()
+
         assert run.exists('sys')
         assert run.exists('kedro')
         assert run.exists('monitoring')
@@ -146,7 +148,6 @@ class TestPlanetsParallel(PlanetsTesting):
             session_params={}
         )
         run = prepare_testing_job(custom_run_id)
-        run.wait()
         self._test_planets_structure(run)
 
 
@@ -158,7 +159,6 @@ class TestPlanetsSequential(PlanetsTesting):
             session_params={}
         )
         run = prepare_testing_job(custom_run_id)
-        run.wait()
         self._test_planets_structure(run)
 
 
@@ -174,7 +174,6 @@ class TestPlanetsParameters(PlanetsTesting):
             }
         )
         run = prepare_testing_job(custom_run_id)
-        run.wait()
         self._test_planets_structure(
             run,
             travel_speed=40000

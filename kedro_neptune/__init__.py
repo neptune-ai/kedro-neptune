@@ -27,14 +27,13 @@ import os
 import sys
 import time
 import urllib.parse
-from collections import namedtuple
 from typing import Any, Dict, Optional
 
 import click
 from kedro.extras.datasets.text import TextDataSet
 from kedro.framework.hooks import hook_impl
 from kedro.framework.project import settings
-from kedro.framework.session import KedroSession, get_current_session
+from kedro.framework.session import KedroSession
 from kedro.framework.startup import ProjectMetadata
 from kedro.io import DataCatalog, MemoryDataSet
 from kedro.io.core import (
@@ -47,6 +46,7 @@ from kedro.pipeline.node import Node
 from ruamel.yaml import YAML
 
 from kedro_neptune._version import get_versions
+from kedro_neptune.config import get_neptune_config
 
 try:
     # neptune-client=0.9.0+ package structure
@@ -117,8 +117,6 @@ PROMPT_API_TOKEN = """Pass Neptune API Token or press enter if you want to \
 use $NEPTUNE_API_TOKEN environment variable:""".replace('\n', '')
 PROMPT_PROJECT_NAME = """Pass Neptune project name in a WORKSPACE/PROJECT format or press enter if you want to \
 use $NEPTUNE_PROJECT environment variable:""".replace('\n', '')
-
-NeptuneConfig = namedtuple('NeptuneConfig', ['api_token', 'project', 'base_namespace', 'source_files', 'enabled'])
 
 
 @neptune_commands.command()
@@ -210,36 +208,6 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
         with context.catalog_file.open('w') as catalog_file:
             catalog_file.writelines(INITIAL_NEPTUNE_CATALOG)
             click.echo(f'Creating catalog_neptune.yml configuration file: {context.catalog_file}')
-
-
-def get_neptune_config() -> NeptuneConfig:
-    session: KedroSession = get_current_session()
-    context = session.load_context()
-    # pylint: disable=protected-access
-    credentials = context._get_config_credentials()
-    config = context.config_loader.get('neptune**')
-
-    api_token = _parse_config_input(credentials['neptune']['api_token'])
-    project = _parse_config_input(config['neptune']['project'])
-    base_namespace = config['neptune']['base_namespace']
-    source_files = config['neptune']['upload_source_files']
-    enabled = config['neptune'].get('enabled', True)
-
-    return NeptuneConfig(
-        api_token=api_token,
-        project=project,
-        base_namespace=base_namespace,
-        source_files=source_files,
-        enabled=enabled
-    )
-
-
-def _parse_config_input(config_input):
-    if config_input.startswith('$'):
-        parsed_input = os.environ.get(config_input[1:])
-    else:
-        parsed_input = config_input
-    return parsed_input
 
 
 def _connection_mode(enabled: bool) -> str:
