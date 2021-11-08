@@ -33,7 +33,7 @@ import click
 from kedro.extras.datasets.text import TextDataSet
 from kedro.framework.hooks import hook_impl
 from kedro.framework.project import settings
-from kedro.framework.session import KedroSession, get_current_session
+from kedro.framework.session import KedroSession
 from kedro.framework.startup import ProjectMetadata
 from kedro.io import DataCatalog, MemoryDataSet
 from kedro.io.core import (
@@ -46,18 +46,21 @@ from kedro.pipeline.node import Node
 from ruamel.yaml import YAML
 
 from kedro_neptune._version import get_versions
+from kedro_neptune.config import get_neptune_config
 
 try:
     # neptune-client=0.9.0+ package structure
     import neptune.new as neptune
     from neptune.new.types import File
     from neptune.new.internal.utils import verify_type
+    from neptune.new.internal.init_impl import RunMode
     from neptune.new.internal.utils.paths import join_paths
 except ImportError:
     # neptune-client>=1.0.0 package structure
     import neptune
     from neptune.types import File
     from neptune.internal.utils import verify_type
+    from neptune.internal.init_impl import RunMode
     from neptune.internal.utils.paths import join_paths
 
 INTEGRATION_VERSION_KEY = 'source_code/integrations/kedro-neptune'
@@ -80,6 +83,7 @@ neptune:
 #GLOBAL CONFIG
   project: ''
   base_namespace: 'kedro'
+  enabled: true
 
 #LOGGING
   upload_source_files:
@@ -206,27 +210,8 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
             click.echo(f'Creating catalog_neptune.yml configuration file: {context.catalog_file}')
 
 
-def get_neptune_config():
-    session: KedroSession = get_current_session()
-    context = session.load_context()
-    # pylint: disable=protected-access
-    credentials = context._get_config_credentials()
-    config = context.config_loader.get('neptune**')
-
-    api_token = _parse_config_input(credentials['neptune']['api_token'])
-    project = _parse_config_input(config['neptune']['project'])
-    base_namespace = config['neptune']['base_namespace']
-    source_files = config['neptune']['upload_source_files']
-
-    return api_token, project, base_namespace, source_files
-
-
-def _parse_config_input(config_input):
-    if config_input.startswith('$'):
-        parsed_input = os.environ.get(config_input[1:])
-    else:
-        parsed_input = config_input
-    return parsed_input
+def _connection_mode(enabled: bool) -> str:
+    return RunMode.ASYNC if enabled else RunMode.DEBUG
 
 
 class NeptuneRunDataSet(AbstractDataSet):
@@ -240,17 +225,18 @@ class NeptuneRunDataSet(AbstractDataSet):
         return True
 
     def _load(self) -> neptune.run.Handler:
-        api_token, project, base_namespace, _ = get_neptune_config()
+        config = get_neptune_config()
 
-        run = neptune.init(api_token=api_token,
-                           project=project,
+        run = neptune.init(api_token=config.api_token,
+                           project=config.project,
+                           mode=_connection_mode(config.enabled),
                            capture_stdout=False,
                            capture_stderr=False,
                            capture_hardware_metrics=False,
                            capture_traceback=False,
                            source_files=None)
 
-        return run[base_namespace]
+        return run[config.base_namespace]
 
 
 class BinaryFileDataSet(TextDataSet):
@@ -443,19 +429,20 @@ class NeptuneHooks:
             pipeline: Pipeline,
             catalog: DataCatalog
     ) -> None:
-        api_token, project, base_namespace, source_files = get_neptune_config()
+        config = get_neptune_config()
 
-        run = neptune.init(api_token=api_token,
-                           project=project,
+        run = neptune.init(api_token=config.api_token,
+                           project=config.project,
+                           mode=_connection_mode(config.enabled),
                            custom_run_id=self._run_id,
-                           source_files=source_files or None)
+                           source_files=config.source_files or None)
 
         run[INTEGRATION_VERSION_KEY] = __version__
 
-        current_namespace = run[base_namespace]
+        current_namespace = run[config.base_namespace]
 
-        os.environ['NEPTUNE_API_TOKEN'] = api_token or ''
-        os.environ['NEPTUNE_PROJECT'] = project or ''
+        os.environ['NEPTUNE_API_TOKEN'] = config.api_token or ''
+        os.environ['NEPTUNE_PROJECT'] = config.project or ''
 
         log_command(namespace=current_namespace)
         log_run_params(namespace=current_namespace, run_params=run_params)

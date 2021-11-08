@@ -28,8 +28,10 @@ from tests.conftest import (
 EXPECTED_SYNC_TIME = 0
 
 
-class TestPlanets:
+class PlanetsTesting:
     def _test_planets_structure(self, run: neptune.Run, travel_speed: int = 10000):
+        run.wait()
+
         assert run.exists('sys')
         assert run.exists('kedro')
         assert run.exists('monitoring')
@@ -135,6 +137,8 @@ class TestPlanets:
         assert run.exists('kedro/moons_classifier/trials/trials/0/io_files')
         assert run.exists('kedro/moons_classifier/trials/trials/0/config')
 
+
+class TestPlanetsParallel(PlanetsTesting):
     def test_parallel(self):
         custom_run_id = run_pipeline(
             project="planets",
@@ -146,6 +150,8 @@ class TestPlanets:
         run = prepare_testing_job(custom_run_id)
         self._test_planets_structure(run)
 
+
+class TestPlanetsSequential(PlanetsTesting):
     def test_sequential(self):
         custom_run_id = run_pipeline(
             project="planets",
@@ -155,6 +161,8 @@ class TestPlanets:
         run = prepare_testing_job(custom_run_id)
         self._test_planets_structure(run)
 
+
+class TestPlanetsParameters(PlanetsTesting):
     def test_parameters(self):
         custom_run_id = run_pipeline(
             project="planets",
