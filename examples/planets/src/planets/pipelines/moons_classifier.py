@@ -104,9 +104,21 @@ def optimize(neptune_run: neptune.run.Handler, model: fastai.tabular.model.Tabul
     return study.best_params
 
 
+def initialize_neptune(neptune_run: neptune.run.Handler):
+    # pylint: disable=protected-access
+    # WARN: "_run" property might be renamed/dropped in future
+    neptune_run._run['sys/tags'].add(['kedro', 'transformer'])
+
+
 def create_pipeline(**kwargs):
     return Pipeline(
         [
+            node(
+                initialize_neptune,
+                ["neptune_run"],
+                None,
+                name="initialize_neptune_metadata",
+            ),
             node(
                 prepare_dataset,
                 ["planets"],
