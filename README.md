@@ -90,11 +90,12 @@ Great-Kedro-Project # Parent directory of the template
 ├── README.md       # Project README
 ├── setup.cfg       # Configuration options for `pytest` when doing `kedro test` and for the `isort` utility when doing `kedro lint`
 ├── src             # Project source code
-    ├── pipelines   
-        ├── data_science
-            ├── nodes.py
-            ├── pipelines.py
-            └── ...
+    ├── great_kedro_project   
+        ├── pipelines   
+            ├── data_science
+                ├── nodes.py
+                ├── pipelines.py
+                └── ...
 ```
 
 You will use `nodes.py` and `pipelines.py` files in this quickstart.
