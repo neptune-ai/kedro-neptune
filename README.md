@@ -141,11 +141,11 @@ You can always go to those files and change the initial configuration.
 import neptune.new as neptune
 ```
 
-* Add **neptune\_run** argument of type `neptune.run.Handler` to the `report_accuracy` function 
+* Add **neptune\_run** argument of type `neptune.handler.Handler` to the `report_accuracy` function 
 
 ```python
 def report_accuracy(predictions: np.ndarray, test_y: pd.DataFrame, 
-                    neptune_run: neptune.run.Handler) -> None:
+                    neptune_run: neptune.handler.Handler) -> None:
 ...
 ```
 
@@ -158,7 +158,7 @@ You have to use a special string "**neptune\_run"** to use the Neptune Run handl
 
 ```python
 def report_accuracy(predictions: np.ndarray, test_y: pd.DataFrame, 
-                    neptune_run: neptune.run.Handler) -> None:
+                    neptune_run: neptune.handler.Handler) -> None:
     target = np.argmax(test_y.to_numpy(), axis=1)
     accuracy = np.sum(predictions == target) / target.shape[0]
     
@@ -171,7 +171,7 @@ You can log metadata from any node to any [Neptune namespace](../../you-should-k
 
 ```python
 def report_accuracy(predictions: np.ndarray, test_y: pd.DataFrame, 
-                    neptune_run: neptune.run.Handler) -> None:
+                    neptune_run: neptune.handler.Handler) -> None:
     target = np.argmax(test_y.to_numpy(), axis=1)
     accuracy = np.sum(predictions == target) / target.shape[0]
     
