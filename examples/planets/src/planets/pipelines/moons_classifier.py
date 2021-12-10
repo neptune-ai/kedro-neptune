@@ -87,7 +87,7 @@ class Objective(object):
         return probs[0]
 
 
-def optimize(neptune_run: neptune.run.Handler, model: fastai.tabular.model.TabularModel):
+def optimize(neptune_run: neptune.handler.Handler, model: fastai.tabular.model.TabularModel):
     study = optuna.create_study(direction="minimize")
     study.optimize(
         Objective(neptune_run=neptune_run._run, model=model),
