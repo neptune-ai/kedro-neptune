@@ -31,8 +31,8 @@ EXPECTED_SYNC_TIME = 0
 
 class PlanetsTesting:
     def _test_planets_structure(self, run: neptune.Run, travel_speed: int = 10000):
+        time.sleep(10)
         run.sync()
-        time.sleep(3)
 
         assert run.exists('sys')
         assert run.exists('kedro')
