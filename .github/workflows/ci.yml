@@ -22,6 +22,8 @@ jobs:
           python -m pylint -j 0 -f parseable kedro_neptune tests
       - name: Build and test
         run: |
+          export NEPTUNE_API_TOKEN=$E2E_NEPTUNE_API_TOKEN
+          export NEPTUNE_PROJECT=$E2E_NEPTUNE_PROJECT
           cd examples/planets; export PYTHONPATH=$PWD/src; py.test $GITHUB_WORKSPACE/tests
 
   publish:
