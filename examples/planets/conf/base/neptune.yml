@@ -1,6 +1,6 @@
 neptune:
     #GLOBAL CONFIG
-    project: common/kedro-integration
+    project: $NEPTUNE_PROJECT
     base_namespace: kedro
     enabled: true
     
