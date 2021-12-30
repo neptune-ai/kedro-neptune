@@ -48,8 +48,6 @@ def run_pipeline(
 
 def prepare_testing_job(custom_run_id):
     return neptune.init(
-            project='common/kedro-integration',
-            api_token='ANONYMOUS',
             custom_run_id=custom_run_id,
             capture_stderr=False,
             capture_stdout=False,
