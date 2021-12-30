@@ -23,7 +23,7 @@ jobs:
       - name: Build and test
         env:
           NEPTUNE_API_TOKEN: ${{ secrets.E2E_NEPTUNE_API_TOKEN }}
-          NEPTUNE_PROJECT: ${{ secrets.E2E_NEPTUNE_PROJECT }}
+          NEPTUNE_PROJECT: e2e
         run: |
           cd examples/planets; export PYTHONPATH=$PWD/src; py.test $GITHUB_WORKSPACE/tests
 
