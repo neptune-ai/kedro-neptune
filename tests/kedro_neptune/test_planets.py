@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import os
+import time
 import hashlib
 from kedro.runner import ParallelRunner
 
@@ -31,6 +32,7 @@ EXPECTED_SYNC_TIME = 0
 class PlanetsTesting:
     def _test_planets_structure(self, run: neptune.Run, travel_speed: int = 10000):
         run.sync()
+        time.sleep(3)
 
         assert run.exists('sys')
         assert run.exists('kedro')
