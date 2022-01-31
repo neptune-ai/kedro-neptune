@@ -484,6 +484,7 @@ class NeptuneHooks:
             current_namespace['outputs'] = list(sorted(outputs.keys()))
 
         log_data_catalog_metadata(namespace=run, catalog=catalog)
+        run['logs'].upload_files("logs/")
         run._run.sync()
 
     @hook_impl
@@ -494,6 +495,7 @@ class NeptuneHooks:
         # pylint: disable=protected-access
         run = catalog.load('neptune_run')
         log_data_catalog_metadata(namespace=run, catalog=catalog)
+        run['logs'].upload_files("logs/")
         run._run.sync()
 
 
