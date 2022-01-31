@@ -9,14 +9,10 @@ formatters:
 
 handlers:
     console:
-        class: logging.handlers.RotatingFileHandler
+        class: logging.StreamHandler
         level: INFO
         formatter: simple
-        filename: logs/console.log
-        maxBytes: 10485760 # 10MB
-        backupCount: 20
-        encoding: utf8
-        delay: True
+        stream: ext://sys.stdout
 
     info_file_handler:
         class: logging.handlers.RotatingFileHandler
