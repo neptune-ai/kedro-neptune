@@ -9,10 +9,9 @@ formatters:
 
 handlers:
     console:
-        class: logging.StreamHandler
+        class: kedro_neptune.log_handler.GrabbableStdoutHandler
         level: INFO
         formatter: simple
-        stream: ext://sys.stdout
 
     info_file_handler:
         class: logging.handlers.RotatingFileHandler
