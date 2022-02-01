@@ -15,6 +15,7 @@
 #
 import os
 import hashlib
+import time
 from ast import literal_eval
 from typing import Dict, Any, Optional, List
 
@@ -43,7 +44,9 @@ def run_pipeline(
         run_id = session.store["session_id"]
         custom_run_id = hashlib.md5(run_id.encode()).hexdigest()
 
-        return custom_run_id
+    # wait for the queues to finish syncing data to server
+    time.sleep(5)
+    return custom_run_id
 
 
 def prepare_testing_job(custom_run_id):
