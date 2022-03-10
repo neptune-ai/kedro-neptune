@@ -15,7 +15,7 @@ def main():
             'pylintfileheader',
             'pytest>=5.0',
             'pytest-cov==2.10.1',
-            'neptune-client[optuna,fastai]>=0.10.3'
+            # 'neptune-client[optuna,fastai]>=0.15.2'
         ]
     }
 
@@ -25,7 +25,7 @@ def main():
     extras['all'] = all_deps
 
     base_libs = [
-        'neptune-client>=0.10.9',
+        # 'neptune-client>=0.15.1',
         'kedro>=0.17.0',
         'ruamel.yaml==0.17.10',
     ]

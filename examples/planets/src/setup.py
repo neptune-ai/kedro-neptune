@@ -46,6 +46,6 @@ setup(
         'pytest~=6.2',
         'wheel>=0.35, <0.37',
         'kedro-neptune',
-        'neptune-client[optuna,fastai]>=0.10.2'
+        # 'neptune-client[optuna,fastai]>=0.15.2'
     ],
 )
