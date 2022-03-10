@@ -5,7 +5,7 @@ inputs:
   working_directory:
     description: 'Working directory'
     required: false
-    default: .
+    default: $PWD
 runs:
     using: "composite"
     steps:
