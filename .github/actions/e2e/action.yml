@@ -15,11 +15,6 @@ runs:
           repository: neptune-ai/kedro-neptune
           path: ${{ inputs.working_directory }}
 
-      - name: Run pre-commit
-        working-directory: ${{ inputs.working_directory }}
-        run: py.test
-        shell: bash
-
       - name: Install development packages
         working-directory: ${{ inputs.working_directory }}
         run: pip install -e .[dev]
