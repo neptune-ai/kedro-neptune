@@ -90,16 +90,16 @@ class Objective(object):
 def optimize(neptune_run: neptune.handler.Handler, model: fastai.tabular.model.TabularModel):
     study = optuna.create_study(direction="minimize")
     study.optimize(
-        Objective(neptune_run=neptune_run._run, model=model),
+        Objective(neptune_run=neptune_run.container, model=model),
         n_trials=5,
         callbacks=[
             optuna_utils.NeptuneCallback(
-                run=neptune_run._run,
+                run=neptune_run.container,
                 base_namespace='kedro/moons_classifier'
             )
         ]
     )
-    neptune_run._run.wait()
+    neptune_run.container.wait()
 
     return study.best_params
 
