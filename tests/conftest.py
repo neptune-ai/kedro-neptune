@@ -51,13 +51,13 @@ def run_pipeline(
 
 def prepare_testing_job(custom_run_id):
     return neptune.init(
-            custom_run_id=custom_run_id,
-            capture_stderr=False,
-            capture_stdout=False,
-            capture_hardware_metrics=False,
-            capture_traceback=False,
-            source_files=[]
-        )
+        custom_run_id=custom_run_id,
+        capture_stderr=False,
+        capture_stdout=False,
+        capture_hardware_metrics=False,
+        capture_traceback=False,
+        source_files=[]
+    )
 
 
 def check_node_metadata(run: neptune.Run, node_namespace: str, inputs: List, outputs: Optional[List] = None):
