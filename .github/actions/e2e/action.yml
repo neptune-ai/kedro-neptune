@@ -17,7 +17,7 @@ runs:
 
       - name: Install development packages
         working-directory: ${{ inputs.working_directory }}
-        run: pip install -e git+https://github.com/neptune-ai/neptune-client.git@rj/expose-handler-container#egg=neptune-client[optuna,fastai] && pip install -e .[dev]
+        run: pip install -e .[dev]
         shell: bash
 
       - name: Lint
