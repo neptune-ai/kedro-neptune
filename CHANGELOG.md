@@ -1,3 +1,8 @@
+## kedro-neptune 0.0.7
+
+### Fixes
+- Fixed accessing run after Model Registry release ([#31](https://github.com/neptune-ai/kedro-neptune/pull/31))
+
 ## kedro-neptune 0.0.6
 
 ### Features

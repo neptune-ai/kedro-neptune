@@ -329,7 +329,7 @@ class NeptuneFileDataSet(BinaryFileDataSet):
 
 def log_file_dataset(namespace: neptune.handler.Handler, name: str, dataset: NeptuneFileDataSet):
     # pylint: disable=protected-access
-    if not namespace._run.exists(f'{namespace._path}/{name}'):
+    if not namespace.container.exists(f'{namespace._path}/{name}'):
         data = dataset.load()
         extension = dataset._describe().get('extension')
 
@@ -371,7 +371,7 @@ def log_data_catalog_metadata(namespace: neptune.handler.Handler, catalog: DataC
     namespace = namespace['catalog']
 
     for name, dataset in catalog._data_sets.items():
-        if dataset.exists() and not namespace._run.exists(join_paths(namespace._path, name)):
+        if dataset.exists() and not namespace.container.exists(join_paths(namespace._path, name)):
             if not isinstance(dataset, MemoryDataSet) and not isinstance(dataset, NeptuneRunDataSet):
                 log_dataset_metadata(namespace=namespace['datasets'], name=name, dataset=dataset)
 
@@ -484,7 +484,7 @@ class NeptuneHooks:
             current_namespace['outputs'] = list(sorted(outputs.keys()))
 
         log_data_catalog_metadata(namespace=run, catalog=catalog)
-        run._run.sync()
+        run.container.sync()
 
     @hook_impl
     def after_pipeline_run(
@@ -494,7 +494,7 @@ class NeptuneHooks:
         # pylint: disable=protected-access
         run = catalog.load('neptune_run')
         log_data_catalog_metadata(namespace=run, catalog=catalog)
-        run._run.sync()
+        run.container.sync()
 
 
 neptune_hooks = NeptuneHooks()
