@@ -1,23 +1,27 @@
-# Kedro-Neptune plugin
+# Neptune + Kedro Integration
 
-Main docs page for [Kedro-Neptune plugin](https://docs.neptune.ai/integrations-and-supported-tools/automation-pipelines/kedro)
-
-[See this example in Neptune](https://app.neptune.ai/o/common/org/kedro-integration/e/KED-632/dashboard/Basic-pipeline-metadata-42874940-da74-4cdc-94a4-315a7cdfbfa8)
-![Kedro pipeline metadata in custom dashboard in the Neptune UI](https://gblobscdn.gitbook.com/assets%2F-MT0sYKbymfLAAtTq4-t%2F-MhlqBKa6Qzf17-9eW1Z%2F-MhlqL1-UuAUaaJr1ogh%2Fkedro-dashboard.png?alt=media&token=4e841fda-ff91-4fc7-bfc6-6af1445b6772)
-
+Kedro plugin for experiment tracking and metadata management. It lets you browse, filter and sort runs in a nice UI, visualize node/pipeline metadata, and compare pipelines.
 
 ## What will you get with this integration?
-
-[Kedro](https://kedro.readthedocs.io/en/stable/index.html) is a popular open-source project that **helps standardize ML workflows**. It gives you a clean and powerful pipeline abstraction where you put all your ML code logic.
-
-[Kedro-Neptune plugin](https://github.com/neptune-ai/kedro-neptune) lets you have all the benefits of a nicely organized kedro pipeline with a powerful user interface built for ML metadata management that lets you:
 
 * **browse, filter, and sort** your model training runs
 * **compare nodes and pipelines** on metrics, visual node outputs, and more
 * **display all pipeline metadata** including learning curves for metrics, plots, and images, rich media like video and audio or interactive visualizations from Plotly, Altair, or Bokeh
 * and do whatever else you would expect from a modern ML metadata store
 
+![image](https://user-images.githubusercontent.com/97611089/160640893-9b95aac1-095e-4869-88a1-99f2cba5a59f.png)
+*Kedro pipeline metadata in custom dashboard in the Neptune UI* 
 
+Note: Kedro-Neptune plugin supports distributed pipeline execution and works in Kedro setups that use orchestrators like Airflow or Kubeflow.
+
+## Resources
+
+* [Documentation](https://docs.neptune.ai/integrations-and-supported-tools/automation-pipelines/kedro)
+* [Code example on GitHub](https://github.com/neptune-ai/examples/blob/main/integrations-and-supported-tools/kedro/scripts/kedro_neptune_quickstart)
+* [Runs logged in the Neptune app](https://app.neptune.ai/o/common/org/kedro-integration/e/KED-632/dashboard/Basic-pipeline-metadata-42874940-da74-4cdc-94a4-315a7cdfbfa8)
+* How to [Compare Kedro pipelines](https://docs.neptune.ai/integrations-and-supported-tools/automation-pipelines/kedro/compare-kedro-pipelines)
+* How to [Compare results between Kedro nodes](https://docs.neptune.ai/integrations-and-supported-tools/automation-pipelines/kedro/compare-results-between-kedro-nodes)
+* How to [Display Kedro node metadata and outputs](https://docs.neptune.ai/integrations-and-supported-tools/automation-pipelines/kedro/display-kedro-node-metadata-and-outputs)
 
 ## Installation
 
@@ -38,22 +42,6 @@ pip install neptune-client kedro kedro-neptune
 For more, see [installing neptune-client](https://docs.neptune.ai/getting-started/installation).
 
 ## Quickstart
-
-<table>
-  <thead>
-    <tr>
-      <th style="text-align:center">
-        <p>&#x200B;<a href="https://github.com/neptune-ai/examples/blob/main/integrations-and-supported-tools/kedro/scripts/kedro_neptune_quickstart">&#x200B;<img src="https://firebasestorage.googleapis.com/v0/b/gitbook-28427.appspot.com/o/assets%2F-MT0sYKbymfLAAtTq4-t%2Fsync%2F182a1a3f734fc1b7d712c68b04c29bad9460d6cd.png?generation=1619014771581311&amp;alt=media" alt/>&#x200B;</a>&#x200B;</p>
-        <p><a href="https://github.com/neptune-ai/examples/blob/main/integrations-and-supported-tools/kedro/scripts/kedro_neptune_quickstart">&#x200B;See code examples on GitHub</a>&#x200B;</p>
-      </th>
-      <th style="text-align:center">
-        <p>&#x200B;<a href="https://app.neptune.ai/o/common/org/kedro-integration/e/KED-632/dashboard/Basic-pipeline-metadata-42874940-da74-4cdc-94a4-315a7cdfbfa8">&#x200B;<img src="https://firebasestorage.googleapis.com/v0/b/gitbook-28427.appspot.com/o/assets%2F-MT0sYKbymfLAAtTq4-t%2Fsync%2F0873e466caf5ef7ed205a2b4287a69dcfb39f1f2.png?generation=1619014771570557&amp;alt=media" alt/>&#x200B;</a>&#x200B;</p>
-        <p><a href="https://app.neptune.ai/o/common/org/kedro-integration/e/KED-632/dashboard/Basic-pipeline-metadata-42874940-da74-4cdc-94a4-315a7cdfbfa8">&#x200B;See runs logged to Neptune</a>&#x200B;</p>
-      </th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
 
 This quickstart will show you how to:
 
@@ -237,9 +225,11 @@ A link to the Neptune Run associated with the Kedro pipeline execution will be p
 
 ![Confusion matrix logged from Kedro to Neptune UI](https://gblobscdn.gitbook.com/assets%2F-MT0sYKbymfLAAtTq4-t%2F-MhlpwncSgltb8WI26mz%2F-Mhlq4WAw7s_QeePOYA1%2Fkedro-confusion-matrix.png?alt=media&token=f0a681e6-3765-4071-91e6-6295cb81cc0c)
 
-## See also
+## Support
 
-* Main docs page for [Kedro-Neptune plugin](https://docs.neptune.ai/integrations-and-supported-tools/automation-pipelines/kedro)
-* How to [Compare Kedro pipelines](https://docs.neptune.ai/integrations-and-supported-tools/automation-pipelines/kedro/compare-kedro-pipelines)
-* How to [Compare results between Kedro nodes](https://docs.neptune.ai/integrations-and-supported-tools/automation-pipelines/kedro/compare-results-between-kedro-nodes)
-* How to [Display Kedro node metadata and outputs](https://docs.neptune.ai/integrations-and-supported-tools/automation-pipelines/kedro/display-kedro-node-metadata-and-outputs)
+If you got stuck or simply want to talk to us, here are your options:
+
+* Check our [FAQ page](https://docs.neptune.ai/getting-started/getting-help#frequently-asked-questions)
+* You can submit bug reports, feature requests, or contributions directly to the repository.
+* Chat! When in the Neptune application click on the blue message icon in the bottom-right corner and send a message. A real person will talk to you ASAP (typically very ASAP),
+* You can just shoot us an email at support@neptune.ai
