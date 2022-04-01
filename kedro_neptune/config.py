@@ -17,7 +17,7 @@ import os
 from typing import List
 from dataclasses import dataclass
 
-from kedro.framework.session import KedroSession, get_current_session
+from kedro.config import ConfigLoader
 
 
 def _parse_config_input(config_input):
@@ -38,11 +38,8 @@ class NeptuneConfig:
 
 
 def get_neptune_config() -> NeptuneConfig:
-    session: KedroSession = get_current_session()
-    context = session.load_context()
-    # pylint: disable=protected-access
-    credentials = context._get_config_credentials()
-    config = context.config_loader.get('neptune**')
+    credentials = ConfigLoader('conf', 'local').get("credentials_neptune*")
+    config = ConfigLoader('conf', 'base').get('neptune*')
 
     api_token = _parse_config_input(credentials['neptune']['api_token'])
     project = _parse_config_input(config['neptune']['project'])
