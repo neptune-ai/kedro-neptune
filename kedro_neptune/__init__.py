@@ -52,12 +52,14 @@ try:
     # neptune-client=0.9.0+ package structure
     import neptune.new as neptune
     from neptune.new.types import File
+    from neptune.new.handler import Handler
     from neptune.new.internal.utils import verify_type
     from neptune.new.internal.utils.paths import join_paths
 except ImportError:
     # neptune-client>=1.0.0 package structure
     import neptune
     from neptune.types import File
+    from neptune.handler import Handler
     from neptune.internal.utils import verify_type
     from neptune.internal.utils.paths import join_paths
 
@@ -222,7 +224,7 @@ class NeptuneRunDataSet(AbstractDataSet):
     def _exists(self) -> bool:
         return True
 
-    def _load(self) -> neptune.handler.Handler:
+    def _load(self) -> Handler:
         config = get_neptune_config()
 
         run = neptune.init(api_token=config.api_token,
@@ -327,7 +329,7 @@ class NeptuneFileDataSet(BinaryFileDataSet):
         )
 
 
-def log_file_dataset(namespace: neptune.handler.Handler, name: str, dataset: NeptuneFileDataSet):
+def log_file_dataset(namespace: Handler, name: str, dataset: NeptuneFileDataSet):
     # pylint: disable=protected-access
     if not namespace.container.exists(f'{namespace._path}/{name}'):
         data = dataset.load()
@@ -346,12 +348,12 @@ def log_file_dataset(namespace: neptune.handler.Handler, name: str, dataset: Nep
         )
 
 
-def log_parameters(namespace: neptune.handler.Handler, catalog: DataCatalog):
+def log_parameters(namespace: Handler, catalog: DataCatalog):
     # pylint: disable=protected-access
     namespace['parameters'] = catalog._data_sets['parameters'].load()
 
 
-def log_dataset_metadata(namespace: neptune.handler.Handler, name: str, dataset: AbstractDataSet):
+def log_dataset_metadata(namespace: Handler, name: str, dataset: AbstractDataSet):
     additional_parameters = {}
     try:
         # pylint: disable=protected-access
@@ -366,7 +368,7 @@ def log_dataset_metadata(namespace: neptune.handler.Handler, name: str, dataset:
     }
 
 
-def log_data_catalog_metadata(namespace: neptune.handler.Handler, catalog: DataCatalog):
+def log_data_catalog_metadata(namespace: Handler, catalog: DataCatalog):
     # pylint: disable=protected-access
     namespace = namespace['catalog']
 
@@ -381,7 +383,7 @@ def log_data_catalog_metadata(namespace: neptune.handler.Handler, catalog: DataC
     log_parameters(namespace=namespace, catalog=catalog)
 
 
-def log_pipeline_metadata(namespace: neptune.handler.Handler, pipeline: Pipeline):
+def log_pipeline_metadata(namespace: Handler, pipeline: Pipeline):
     namespace['structure'].upload(File.from_content(
         json.dumps(
             json.loads(pipeline.to_json()),
@@ -392,11 +394,11 @@ def log_pipeline_metadata(namespace: neptune.handler.Handler, pipeline: Pipeline
     ))
 
 
-def log_run_params(namespace: neptune.handler.Handler, run_params: Dict[str, Any]):
+def log_run_params(namespace: Handler, run_params: Dict[str, Any]):
     namespace['run_params'] = run_params
 
 
-def log_command(namespace: neptune.handler.Handler):
+def log_command(namespace: Handler):
     namespace['kedro_command'] = ' '.join(['kedro'] + sys.argv[1:])
 
 
