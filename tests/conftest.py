@@ -19,6 +19,7 @@ import time
 from ast import literal_eval
 from typing import Dict, Any, Optional, List
 
+from kedro.framework.project import configure_project
 from kedro.framework.session import KedroSession
 
 
@@ -38,6 +39,7 @@ def run_pipeline(
     if 'NEPTUNE_CUSTOM_RUN_ID' in os.environ:
         del os.environ['NEPTUNE_CUSTOM_RUN_ID']
 
+    configure_project(project)
     with KedroSession.create(project, **session_params) as session:
         session.run(**run_params)
 
