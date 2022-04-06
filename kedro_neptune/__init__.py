@@ -178,7 +178,7 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
     context = session.load_context()
 
     yaml = YAML()
-    context.credentials_file = context.project_path / settings.CONF_ROOT / 'local' / 'credentials_neptune.yml'
+    context.credentials_file = context.project_path / settings.CONF_SOURCE / 'local' / 'credentials_neptune.yml'
 
     if not context.credentials_file.exists():
         with context.credentials_file.open('w') as credentials_file:
@@ -189,20 +189,20 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
 
             click.echo(f'Created credentials_neptune.yml configuration file: {context.credentials_file}')
 
-    context.config_file = context.project_path / settings.CONF_ROOT / config / 'neptune.yml'
+    context.config_file = context.project_path / settings.CONF_SOURCE / config / 'neptune.yml'
 
     if not context.config_file.exists():
         with context.config_file.open('w') as config_file:
             config_template = yaml.load(INITIAL_NEPTUNE_CONFIG)
             config_template['neptune']['project'] = project
             config_template['neptune']['base_namespace'] = base_namespace
-            config_template['neptune']['upload_source_files'] = ['**/*.py', f'{settings.CONF_ROOT}/{config}/*.yml']
+            config_template['neptune']['upload_source_files'] = ['**/*.py', f'{settings.CONF_SOURCE}/{config}/*.yml']
 
             yaml.dump(config_template, config_file)
 
             click.echo(f'Creating neptune.yml configuration file in: {context.config_file}')
 
-    context.catalog_file = context.project_path / settings.CONF_ROOT / config / 'catalog_neptune.yml'
+    context.catalog_file = context.project_path / settings.CONF_SOURCE / config / 'catalog_neptune.yml'
 
     if not context.catalog_file.exists():
         with context.catalog_file.open('w') as catalog_file:
