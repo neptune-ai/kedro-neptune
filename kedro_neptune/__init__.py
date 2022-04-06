@@ -414,10 +414,6 @@ class NeptuneHooks:
             catalog: DataCatalog,
             save_version: str,
     ) -> None:
-        print("🤡", save_version)
-        # FIXME: prints e.g. 2022-04-04T13.22.04.365Z
-        # migration guide at https://github.com/kedro-org/kedro/releases/tag/0.18.0
-        # mentions "If you use run_id in the after_catalog_created hook, replace it with save_version instead"
         self._run_id = hashlib.md5(save_version.encode()).hexdigest()
         os.environ['NEPTUNE_CUSTOM_RUN_ID'] = self._run_id
 
