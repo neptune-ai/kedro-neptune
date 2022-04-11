@@ -52,12 +52,14 @@ try:
     # neptune-client=0.9.0+ package structure
     import neptune.new as neptune
     from neptune.new.types import File
+    from neptune.new.handler import Handler
     from neptune.new.internal.utils import verify_type
     from neptune.new.internal.utils.paths import join_paths
 except ImportError:
     # neptune-client>=1.0.0 package structure
     import neptune
     from neptune.types import File
+    from neptune.handler import Handler
     from neptune.internal.utils import verify_type
     from neptune.internal.utils.paths import join_paths
 
@@ -176,7 +178,7 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
     context = session.load_context()
 
     yaml = YAML()
-    context.credentials_file = context.project_path / settings.CONF_ROOT / 'local' / 'credentials_neptune.yml'
+    context.credentials_file = context.project_path / settings.CONF_SOURCE / 'local' / 'credentials_neptune.yml'
 
     if not context.credentials_file.exists():
         with context.credentials_file.open('w') as credentials_file:
@@ -187,20 +189,20 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
 
             click.echo(f'Created credentials_neptune.yml configuration file: {context.credentials_file}')
 
-    context.config_file = context.project_path / settings.CONF_ROOT / config / 'neptune.yml'
+    context.config_file = context.project_path / settings.CONF_SOURCE / config / 'neptune.yml'
 
     if not context.config_file.exists():
         with context.config_file.open('w') as config_file:
             config_template = yaml.load(INITIAL_NEPTUNE_CONFIG)
             config_template['neptune']['project'] = project
             config_template['neptune']['base_namespace'] = base_namespace
-            config_template['neptune']['upload_source_files'] = ['**/*.py', f'{settings.CONF_ROOT}/{config}/*.yml']
+            config_template['neptune']['upload_source_files'] = ['**/*.py', f'{settings.CONF_SOURCE}/{config}/*.yml']
 
             yaml.dump(config_template, config_file)
 
             click.echo(f'Creating neptune.yml configuration file in: {context.config_file}')
 
-    context.catalog_file = context.project_path / settings.CONF_ROOT / config / 'catalog_neptune.yml'
+    context.catalog_file = context.project_path / settings.CONF_SOURCE / config / 'catalog_neptune.yml'
 
     if not context.catalog_file.exists():
         with context.catalog_file.open('w') as catalog_file:
@@ -222,8 +224,8 @@ class NeptuneRunDataSet(AbstractDataSet):
     def _exists(self) -> bool:
         return True
 
-    def _load(self) -> neptune.handler.Handler:
-        config = get_neptune_config()
+    def _load(self) -> Handler:
+        config = get_neptune_config(settings)
 
         run = neptune.init(api_token=config.api_token,
                            project=config.project,
@@ -327,7 +329,7 @@ class NeptuneFileDataSet(BinaryFileDataSet):
         )
 
 
-def log_file_dataset(namespace: neptune.handler.Handler, name: str, dataset: NeptuneFileDataSet):
+def log_file_dataset(namespace: Handler, name: str, dataset: NeptuneFileDataSet):
     # pylint: disable=protected-access
     if not namespace.container.exists(f'{namespace._path}/{name}'):
         data = dataset.load()
@@ -346,12 +348,12 @@ def log_file_dataset(namespace: neptune.handler.Handler, name: str, dataset: Nep
         )
 
 
-def log_parameters(namespace: neptune.handler.Handler, catalog: DataCatalog):
+def log_parameters(namespace: Handler, catalog: DataCatalog):
     # pylint: disable=protected-access
     namespace['parameters'] = catalog._data_sets['parameters'].load()
 
 
-def log_dataset_metadata(namespace: neptune.handler.Handler, name: str, dataset: AbstractDataSet):
+def log_dataset_metadata(namespace: Handler, name: str, dataset: AbstractDataSet):
     additional_parameters = {}
     try:
         # pylint: disable=protected-access
@@ -366,7 +368,7 @@ def log_dataset_metadata(namespace: neptune.handler.Handler, name: str, dataset:
     }
 
 
-def log_data_catalog_metadata(namespace: neptune.handler.Handler, catalog: DataCatalog):
+def log_data_catalog_metadata(namespace: Handler, catalog: DataCatalog):
     # pylint: disable=protected-access
     namespace = namespace['catalog']
 
@@ -381,7 +383,7 @@ def log_data_catalog_metadata(namespace: neptune.handler.Handler, catalog: DataC
     log_parameters(namespace=namespace, catalog=catalog)
 
 
-def log_pipeline_metadata(namespace: neptune.handler.Handler, pipeline: Pipeline):
+def log_pipeline_metadata(namespace: Handler, pipeline: Pipeline):
     namespace['structure'].upload(File.from_content(
         json.dumps(
             json.loads(pipeline.to_json()),
@@ -392,11 +394,11 @@ def log_pipeline_metadata(namespace: neptune.handler.Handler, pipeline: Pipeline
     ))
 
 
-def log_run_params(namespace: neptune.handler.Handler, run_params: Dict[str, Any]):
+def log_run_params(namespace: Handler, run_params: Dict[str, Any]):
     namespace['run_params'] = run_params
 
 
-def log_command(namespace: neptune.handler.Handler):
+def log_command(namespace: Handler):
     namespace['kedro_command'] = ' '.join(['kedro'] + sys.argv[1:])
 
 
@@ -410,9 +412,9 @@ class NeptuneHooks:
     def after_catalog_created(
             self,
             catalog: DataCatalog,
-            run_id: str,
+            save_version: str,
     ) -> None:
-        self._run_id = hashlib.md5(run_id.encode()).hexdigest()
+        self._run_id = hashlib.md5(save_version.encode()).hexdigest()
         os.environ['NEPTUNE_CUSTOM_RUN_ID'] = self._run_id
 
         catalog.add(
@@ -427,7 +429,7 @@ class NeptuneHooks:
             pipeline: Pipeline,
             catalog: DataCatalog
     ) -> None:
-        config = get_neptune_config()
+        config = get_neptune_config(settings)
 
         run = neptune.init(api_token=config.api_token,
                            project=config.project,

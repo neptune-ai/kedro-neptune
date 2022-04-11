@@ -17,8 +17,6 @@ import os
 from typing import List
 from dataclasses import dataclass
 
-from kedro.framework.session import KedroSession, get_current_session
-
 
 def _parse_config_input(config_input):
     if config_input.startswith('$'):
@@ -37,12 +35,10 @@ class NeptuneConfig:
     enabled: bool
 
 
-def get_neptune_config() -> NeptuneConfig:
-    session: KedroSession = get_current_session()
-    context = session.load_context()
-    # pylint: disable=protected-access
-    credentials = context._get_config_credentials()
-    config = context.config_loader.get('neptune**')
+def get_neptune_config(settings) -> NeptuneConfig:
+    config_loader = settings.CONFIG_LOADER_CLASS(settings.CONF_SOURCE, **settings.CONFIG_LOADER_ARGS)
+    credentials = config_loader.get("credentials_neptune*")
+    config = config_loader.get('neptune*')
 
     api_token = _parse_config_input(credentials['neptune']['api_token'])
     project = _parse_config_input(config['neptune']['project'])

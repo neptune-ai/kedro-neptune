@@ -27,7 +27,7 @@ Note: Kedro-Neptune plugin supports distributed pipeline execution and works in 
 
 Before you start, make sure that:
 
-* You have `Python 3.6+` in your system,
+* You have `Python 3.7+` in your system,
 * You are already a [registered user](https://neptune.ai/register) so that you can log metadata to your [private projects](https://docs.neptune.ai/administration/workspace-project-and-user-management/projects).
 * You have your [Neptune API token set to the `NEPTUNE_API_TOKEN`environment variable](../../getting-started/installation.md#authentication-neptune-api-token).
 
