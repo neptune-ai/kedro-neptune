@@ -1,3 +1,9 @@
+## kedro-neptune 0.1.0
+
+### Changes
+- Adapted to kedro 0.18 release ([#33](https://github.com/neptune-ai/kedro-neptune/pull/33))
+- Dropped support for kedro 0.17 (incompatible with 0.18) and python 3.6 (unsupported by kedro 0.18)
+
 ## kedro-neptune 0.0.8
 
 ### Fixes

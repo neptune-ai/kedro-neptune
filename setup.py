@@ -26,7 +26,7 @@ def main():
 
     base_libs = [
         'neptune-client>=0.15.2',
-        'kedro>=0.17.0',
+        'kedro>=0.18.0',
         'ruamel.yaml==0.17.10',
     ]
 
