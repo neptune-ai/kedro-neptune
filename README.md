@@ -23,207 +23,42 @@ Note: Kedro-Neptune plugin supports distributed pipeline execution and works in 
 * How to [Compare results between Kedro nodes](https://docs.neptune.ai/integrations-and-supported-tools/automation-pipelines/kedro/compare-results-between-kedro-nodes)
 * How to [Display Kedro node metadata and outputs](https://docs.neptune.ai/integrations-and-supported-tools/automation-pipelines/kedro/display-kedro-node-metadata-and-outputs)
 
-## Installation
+## Example
 
-Before you start, make sure that:
-
-* You have `Python 3.7+` in your system,
-* You are already a [registered user](https://neptune.ai/register) so that you can log metadata to your [private projects](https://docs.neptune.ai/administration/workspace-project-and-user-management/projects).
-* You have your [Neptune API token set to the `NEPTUNE_API_TOKEN`environment variable](../../getting-started/installation.md#authentication-neptune-api-token).
-
-### Install neptune-client, kedro, and kedro-neptune
-
-Depending on your operating system open a terminal or CMD and run this command. All required libraries are available via `pip` and `conda`:
-
-```bash
+```python
+# On the command line:
 pip install neptune-client kedro kedro-neptune
-```
-
-For more, see [installing neptune-client](https://docs.neptune.ai/getting-started/installation).
-
-## Quickstart
-
-This quickstart will show you how to:
-
-* Connect Neptune to your Kedro project
-* Log pipeline and dataset metadata to Neptune
-* Add explicit metadata logging to a node in your pipeline  
-* Explore logged metadata in the Neptune UI.
-
-### **Before you start**
-
-* [Have Kedro installed](https://kedro.readthedocs.io/en/stable/02_get_started/02_install.html)
-* [Have neptune-client and kedro-neptune plugin installed](kedro.md#install-neptune-client-kedro-and-kedro-neptune)
-
-### **Step 1: Create a Kedro project from "pandas-iris" starter**
-
-* Go to your console and create a [Kedro starter project "pandas-iris"](https://kedro.readthedocs.io/en/stable/02_get_started/05_example_project.html)
-
-```bash
 kedro new --starter=pandas-iris
-```
 
-* Follow instructions and choose a name for your Kedro project. For example,  "Great-Kedro-Project"
-* Go to your new Kedro project directory
-
-If everything was set up correctly you should see the following directory structure: 
-
-```text
-Great-Kedro-Project # Parent directory of the template
-├── conf            # Project configuration files
-├── data            # Local project data (not committed to version control)
-├── docs            # Project documentation
-├── logs            # Project output logs (not committed to version control)
-├── notebooks       # Project related Jupyter notebooks (can be used for experimental code before moving the code to src)
-├── README.md       # Project README
-├── setup.cfg       # Configuration options for `pytest` when doing `kedro test` and for the `isort` utility when doing `kedro lint`
-├── src             # Project source code
-    ├── great_kedro_project   
-        ├── pipelines   
-            ├── data_science
-                ├── nodes.py
-                ├── pipelines.py
-                └── ...
-```
-
-You will use `nodes.py` and `pipelines.py` files in this quickstart.
-
-### **Step 2: Initialize kedro-neptune plugin**
-
-* Go to your Kedro project directory and run
-
-```text
+# In your Kedro project directory:
 kedro neptune init
 ```
-
-The command line will ask for your Neptune API token  
-
-* Input your [Neptune API token](../../getting-started/installation.md#authentication-neptune-api-token):
-  * Press enter if it was set to the `NEPTUNE_API_TOKEN` environment variable
-  * Pass a different environment variable to which you set your Neptune API token. For example   `MY_SPECIAL_NEPTUNE_TOKEN_VARIABLE` 
-  * Pass your Neptune API token as a string 
-
-The command line will ask for your Neptune project name  
-
-* Input your [Neptune project name](../../getting-started/installation.md#setting-the-project-name):
-  * Press enter if it was set to the `NEPTUNE_PROJECT` environment variable
-  * Pass a different environment variable to which you set your Neptune project name. For example   `MY_SPECIAL_NEPTUNE_PROJECT_VARIABLE` 
-  * Pass your project name as a string in a format `WORKSPACE/PROJECT`
-
-If everything was set up correctly you should:
-
-* see the message: _"kedro-neptune plugin successfully configured"_
-* see three new files in your kedro project:
-  * Credentials file:`YOUR_KEDRO_PROJECT/conf/local/credentials_neptune.yml`
-  * Config file:`YOUR_KEDRO_PROJECT/conf/base/neptune.yml`
-  * Catalog file:`YOUR_KEDRO_PROJECT/conf/base/neptune_catalog.yml`
-
-You can always go to those files and change the initial configuration. 
-
-### **Step 3: Add Neptune logging to a Kedro node**
-
-* Go to a pipeline node _src/KEDRO\_PROJECT/pipelines/data\_science/nodes.py_
-* Import Neptune client toward the top of the _nodes.py_
-
 ```python
+# In a pipeline node, in nodes.py:
 import neptune.new as neptune
-```
 
-* Add **neptune\_run** argument of type `neptune.handler.Handler` to the `report_accuracy` function 
-
-```python
+# Add a Neptune run handler to the report_accuracy() function
+# and log metrics to neptune_run
 def report_accuracy(predictions: np.ndarray, test_y: pd.DataFrame, 
-                    neptune_run: neptune.handler.Handler) -> None:
-...
-```
-
-You can treat **neptune\_run** like a normal [Neptune Run ](../../you-should-know/core-concepts.md#run)and [log any ML metadata to it](../../you-should-know/what-can-you-log-and-display.md). 
-
-**Important**  
-You have to use a special string "**neptune\_run"** to use the Neptune Run handler in Kedro pipelines.
-
-* Log metrics like accuracy to **neptune\_run**  
-
-```python
-def report_accuracy(predictions: np.ndarray, test_y: pd.DataFrame, 
-                    neptune_run: neptune.handler.Handler) -> None:
+                    neptune_run: neptune.run.Handler) -> None:
     target = np.argmax(test_y.to_numpy(), axis=1)
     accuracy = np.sum(predictions == target) / target.shape[0]
     
-    neptune_run['nodes/report/accuracy'] = accuracy * 100
-```
+    neptune_run["nodes/report/accuracy"] = accuracy * 100
 
-You can log metadata from any node to any [Neptune namespace](../../you-should-know/logging-metadata.md#run-structure-namespaces) you want. 
-
-* Log images like a confusion matrix to **neptune\_run**
-
-```python
-def report_accuracy(predictions: np.ndarray, test_y: pd.DataFrame, 
-                    neptune_run: neptune.handler.Handler) -> None:
-    target = np.argmax(test_y.to_numpy(), axis=1)
-    accuracy = np.sum(predictions == target) / target.shape[0]
-    
-    fig, ax = plt.subplots()
-    plot_confusion_matrix(target, predictions, ax=ax)
-    neptune_run['nodes/report/confusion_matrix'].upload(fig)
-```
-
-**Note**  
-You can log metrics, text, images, video, interactive visualizations, and more.   
-See a full list of [What you can log and display](../../you-should-know/what-can-you-log-and-display.md) in Neptune.
-
-### **Step 4: Add Neptune Run handler to the Kedro pipeline**
-
-* Go to a pipeline definition, _src/KEDRO\_PROJECT/pipelines/data\_science/pipelines.py_
-* Add **neptune\_run** Run handler as an input to the `report` node
-
-```python
+# Add the Neptune run handler to the Kedro pipeline
 node(
     report_accuracy,
     ["example_predictions", "example_test_y", "neptune_run"],
     None,
-    name="report"),
+    name="report")
 ```
-
-### **Step 5: Run Kedro pipeline**
-
-Go to your console and execute your Kedro pipeline
-
-```bash
+```python
+# On the command line, run the Kedro pipeline
 kedro run
 ```
 
-A link to the Neptune Run associated with the Kedro pipeline execution will be printed to the console.
 
-### **Step 6: Explore results in the Neptune UI** 
-
-* Click on the Neptune Run link in your console or use an example link
-
-[https://app.neptune.ai/common/kedro-integration/e/KED-632](https://app.neptune.ai/common/kedro-integration/e/KED-632)
-
-* Go to the **kedro** namespace where metadata about Kedro pipelines are logged \(see [how to change the default logging location](kedro.md#configure-base-neptune-yml)\)
-
-![Default Kedro namespace in Neptune UI](https://gblobscdn.gitbook.com/assets%2F-MT0sYKbymfLAAtTq4-t%2F-MhlohCAeyv1RNJRkQpG%2F-Mhlp1caicNHOPRs53sv%2Fkedro-all-metadata.png?alt=media&token=22a5d272-9468-407a-a575-e0264b513296)
-
-* See pipeline and node parameters in _**kedro/catalog/parameters**_ 
-
-![Pipeline parameters logged from Kedro to Neptune UI](https://gblobscdn.gitbook.com/assets%2F-MT0sYKbymfLAAtTq4-t%2F-MhlohCAeyv1RNJRkQpG%2F-MhlpBjn-x3c9rhDwekN%2Fkedro-parameters.png?alt=media&token=35cc9a0d-aeae-4b4a-a365-a039da0dd97f)
-
-* See execution parameters in _**kedro/run\_params**_
-
-![Execution parameters logged from Kedro to Neptune UI](https://gblobscdn.gitbook.com/assets%2F-MT0sYKbymfLAAtTq4-t%2F-MhlpF4GGb5JVx-RsqWU%2F-MhlpQiwPa2bpEyGKcR9%2Fkedro-run_params.png?alt=media&token=09827e1d-d2b0-4748-a546-33d133169e24)
-
-* See metadata about the datasets in _**kedro/catalog/datasets/example\_iris\_data**_
-
-![Dataset metadata logged from Kedro to Neptune UI](https://gblobscdn.gitbook.com/assets%2F-MT0sYKbymfLAAtTq4-t%2F-MhlpTH5O7VmBG0MbKzT%2F-Mhlpc79AxCv0s-AUSBB%2Fkedro-dataset-metadata.png?alt=media&token=e58f791a-5988-4c62-aa7b-923f8c4ab8e0)
-
-* See the metrics \(accuracy\) you logged explicitly in the _**kedro/nodes/report/accuracy**_
-
-![Metrics logged from Kedro to Neptune UI](https://gblobscdn.gitbook.com/assets%2F-MT0sYKbymfLAAtTq4-t%2F-MhlpewQ2UncQWdWiW1g%2F-MhlptBzz5sgeIfGp9FL%2Fkedro-accuracy.png?alt=media&token=21a5c03e-e3fe-48be-b1ce-f230e99b5df5)
-
-* See charts \(confusion matrix\) you logged explicitly in the _**kedro/nodes/report/confusion\_matrix**_
-
-![Confusion matrix logged from Kedro to Neptune UI](https://gblobscdn.gitbook.com/assets%2F-MT0sYKbymfLAAtTq4-t%2F-MhlpwncSgltb8WI26mz%2F-Mhlq4WAw7s_QeePOYA1%2Fkedro-confusion-matrix.png?alt=media&token=f0a681e6-3765-4071-91e6-6295cb81cc0c)
 
 ## Support
 
