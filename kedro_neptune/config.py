@@ -48,7 +48,7 @@ def get_neptune_config() -> NeptuneConfig:
     project = _parse_config_input(config['neptune']['project'])
     base_namespace = config['neptune']['base_namespace']
     source_files = config['neptune']['upload_source_files']
-    enabled = bool(_parse_config_input(config['neptune']))
+    enabled = bool(_parse_config_input(config['neptune'].get('enabled', True)))
 
     return NeptuneConfig(
         api_token=api_token,
