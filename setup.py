@@ -11,7 +11,7 @@ def main():
 
     extras = {
         'dev': [
-            'pylint',
+            'pylint==2.9.6',
             'pylintfileheader',
             'pytest>=5.0',
             'pytest-cov==2.10.1',
