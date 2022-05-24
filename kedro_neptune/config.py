@@ -18,12 +18,10 @@ from typing import List
 from dataclasses import dataclass
 
 
-def _parse_config_input(config_input):
+def _parse_config_input(config_input: str):
     if config_input.startswith('$'):
-        parsed_input = os.environ.get(config_input[1:])
-    else:
-        parsed_input = config_input
-    return parsed_input
+        return os.environ.get(config_input[1:])
+    return config_input
 
 
 @dataclass()
@@ -44,7 +42,7 @@ def get_neptune_config(settings) -> NeptuneConfig:
     project = _parse_config_input(config['neptune']['project'])
     base_namespace = config['neptune']['base_namespace']
     source_files = config['neptune']['upload_source_files']
-    enabled = bool(_parse_config_input(config['neptune'].get('enabled', True)))
+    enabled = bool(_parse_config_input(config['neptune'].get('enabled', 'true')))
 
     return NeptuneConfig(
         api_token=api_token,
