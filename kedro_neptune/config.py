@@ -19,7 +19,7 @@ from dataclasses import dataclass
 
 
 def _parse_config_input(config_input: str):
-    if config_input.startswith('$'):
+    if isinstance(config_input, str) and config_input.startswith('$'):
         return os.environ.get(config_input[1:])
     return config_input
 
@@ -42,7 +42,7 @@ def get_neptune_config(settings) -> NeptuneConfig:
     project = _parse_config_input(config['neptune']['project'])
     base_namespace = config['neptune']['base_namespace']
     source_files = config['neptune']['upload_source_files']
-    enabled = bool(_parse_config_input(config['neptune'].get('enabled', 'true')))
+    enabled = bool(_parse_config_input(config['neptune'].get('enabled', True)))
 
     return NeptuneConfig(
         api_token=api_token,
