@@ -18,12 +18,10 @@ from typing import List
 from dataclasses import dataclass
 
 
-def _parse_config_input(config_input):
-    if config_input.startswith('$'):
-        parsed_input = os.environ.get(config_input[1:])
-    else:
-        parsed_input = config_input
-    return parsed_input
+def _parse_config_input(config_input: str):
+    if isinstance(config_input, str) and config_input.startswith('$'):
+        return os.environ.get(config_input[1:])
+    return config_input
 
 
 @dataclass()

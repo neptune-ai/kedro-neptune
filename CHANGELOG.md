@@ -1,3 +1,8 @@
+## kedro-neptune 0.1.1
+
+### Features
+- Support environment variables for enabled ([#35](https://github.com/neptune-ai/kedro-neptune/pull/35))
+
 ## kedro-neptune 0.1.0
 
 ### Changes
