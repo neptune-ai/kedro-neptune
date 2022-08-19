@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
-import hashlib
 import time
 from ast import literal_eval
 from typing import Dict, Any, Optional, List
@@ -36,19 +34,12 @@ def run_pipeline(
         run_params: Dict[str, Any],
         session_params: Dict[str, Any]
 ):
-    # if 'NEPTUNE_CUSTOM_RUN_ID' in os.environ:
-    #     del os.environ['NEPTUNE_CUSTOM_RUN_ID']
-
     configure_project(project)
     with KedroSession.create(project, **session_params) as session:
         session.run(**run_params)
 
-        # run_id = session.store["session_id"]
-        # custom_run_id = hashlib.md5(run_id.encode()).hexdigest()
-
     # wait for the queues to finish syncing data to server
     time.sleep(5)
-    # return custom_run_id
 
 
 def prepare_testing_job():
