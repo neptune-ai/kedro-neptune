@@ -5,13 +5,16 @@
 conf/local/**
 !conf/local/.gitkeep
 .telemetry
+.neptune
 
 # ignore potentially sensitive credentials files
 conf/**/*credentials*
+!conf/local/credentials_neptune.yml
 
 # ignore everything in the following folders
 data/**
 logs/**
+models/**
 
 # except their sub-folders
 !data/**/
@@ -21,7 +24,8 @@ logs/**
 !.gitkeep
 
 # also keep the example dataset
-!data/01_raw/iris.csv
+!data/planets/planets.csv
+!data/planets/logo.png
 
 
 ##########################
