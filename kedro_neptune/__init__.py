@@ -409,10 +409,7 @@ class NeptuneHooks:
 
     # pylint: disable=unused-argument
     @hook_impl
-    def after_catalog_created(
-            self,
-            catalog: DataCatalog
-    ) -> None:
+    def after_catalog_created(self, catalog: DataCatalog) -> None:
         self._run_id = hashlib.md5(str(time.time()).encode()).hexdigest()
         os.environ['NEPTUNE_CUSTOM_RUN_ID'] = self._run_id
 
