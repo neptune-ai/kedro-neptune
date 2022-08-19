@@ -1,7 +1,10 @@
 ## [UNRELEASED] kedro-neptune 0.1.2
 
 ### Fixes
--  Fixed custom run id generation on catalog creation ([#42](https://github.com/neptune-ai/kedro-neptune/pull/42))
+- Fixed custom run id generation on catalog creation ([#42](https://github.com/neptune-ai/kedro-neptune/pull/42))
+
+### Changed
+- `planets` example migrated to Kedro 0.18 structure ([#41](https://github.com/neptune-ai/kedro-neptune/pull/41))
 
 ## kedro-neptune 0.1.1
 
