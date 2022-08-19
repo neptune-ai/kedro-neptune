@@ -35,6 +35,6 @@ def extract_env_variable(value: Any):
 
 def ensure_bool(value: Optional[Union[str, bool]]) -> bool:
     if isinstance(value, str):
-        return value.lower() not in ('', 'false', 'no', '0')
+        return value.lower() not in ('false', 'no', '0')
 
     return value

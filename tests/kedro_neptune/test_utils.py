@@ -26,6 +26,7 @@ class TestUtils:
         assert ensure_bool(value="0") is False
 
         assert ensure_bool(value=True) is True
+        assert ensure_bool(value="") is True
         assert ensure_bool(value="non_boolean") is True
         assert ensure_bool(value="1") is True
         assert ensure_bool(value="TRUE") is True
