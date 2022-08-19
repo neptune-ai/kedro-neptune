@@ -20,7 +20,7 @@ __all__ = [
 
 import os
 
-from typing import Any, Union
+from typing import Any, Union, Optional
 
 
 def parse_config_value(config_value: Any):
@@ -29,11 +29,12 @@ def parse_config_value(config_value: Any):
 
 def extract_env_variable(value: Any):
     if isinstance(value, str) and value.startswith('$'):
-        return os.environ.get(value[1:])
+        return os.environ.get(value[1:], '')
     return value
 
 
-def ensure_bool(value: Union[str, bool]) -> bool:
+def ensure_bool(value: Optional[Union[str, bool]]) -> bool:
     if isinstance(value, str):
-        return value.lower() not in ('false', 'no', '0')
+        return value.lower() not in ('', 'false', 'no', '0')
+
     return value
