@@ -2,7 +2,7 @@ neptune:
     #GLOBAL CONFIG
     project: $NEPTUNE_PROJECT
     base_namespace: kedro
-    enabled: true
+    enabled: $NEPTUNE_ENABLED
     
     #LOGGING
     upload_source_files:
