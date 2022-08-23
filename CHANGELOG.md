@@ -4,6 +4,9 @@
 - Fixed custom run id generation on catalog creation ([#42](https://github.com/neptune-ai/kedro-neptune/pull/42))
 - Fixed parsing of `NEPTUNE_ENABLED` flag ([#43](https://github.com/neptune-ai/kedro-neptune/pull/43))
 
+### Changed
+- `planets` example migrated to Kedro 0.18 structure ([#41](https://github.com/neptune-ai/kedro-neptune/pull/41))
+
 ## kedro-neptune 0.1.1
 
 ### Features

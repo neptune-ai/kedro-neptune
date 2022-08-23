@@ -14,6 +14,7 @@ conf/**/*credentials*
 # ignore everything in the following folders
 data/**
 logs/**
+models/**
 
 # except their sub-folders
 !data/**/
@@ -25,6 +26,7 @@ logs/**
 # also keep the example dataset
 !data/planets/planets.csv
 !data/planets/logo.png
+
 
 ##########################
 # Common files
@@ -146,6 +148,7 @@ celerybeat-schedule
 
 # Environments
 .env
+.envrc
 .venv
 env/
 venv/

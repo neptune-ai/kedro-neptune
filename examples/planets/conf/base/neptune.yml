@@ -1,10 +1,10 @@
 neptune:
-    #GLOBAL CONFIG
-    project: $NEPTUNE_PROJECT
-    base_namespace: kedro
-    enabled: $NEPTUNE_ENABLED
-    
-    #LOGGING
-    upload_source_files:
-        - '**/*.py'
-        - 'conf/base/*.yml'
+#GLOBAL CONFIG
+  project: $NEPTUNE_PROJECT
+  base_namespace: kedro
+  enabled: true
+
+#LOGGING
+  upload_source_files:
+  - '**/*.py'
+  - conf/base/*.yml
