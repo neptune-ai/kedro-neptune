@@ -138,31 +138,31 @@ class PlanetsTesting:
 
 class TestPlanetsParallel(PlanetsTesting):
     def test_parallel(self):
-        custom_run_id = run_pipeline(
+        run_pipeline(
             project="planets",
             run_params={
                 'runner': ParallelRunner(2)
             },
             session_params={}
         )
-        run = prepare_testing_job(custom_run_id)
+        run = prepare_testing_job()
         self._test_planets_structure(run)
 
 
 class TestPlanetsSequential(PlanetsTesting):
     def test_sequential(self):
-        custom_run_id = run_pipeline(
+        run_pipeline(
             project="planets",
             run_params={},
             session_params={}
         )
-        run = prepare_testing_job(custom_run_id)
+        run = prepare_testing_job()
         self._test_planets_structure(run)
 
 
 class TestPlanetsParameters(PlanetsTesting):
     def test_parameters(self):
-        custom_run_id = run_pipeline(
+        run_pipeline(
             project="planets",
             run_params={},
             session_params={
@@ -171,7 +171,7 @@ class TestPlanetsParameters(PlanetsTesting):
                 }
             }
         )
-        run = prepare_testing_job(custom_run_id)
+        run = prepare_testing_job()
         self._test_planets_structure(
             run,
             travel_speed=40000
