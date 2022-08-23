@@ -20,6 +20,7 @@ class TestUtils:
     def test_ensure_bool(self):
         assert ensure_bool(value=False) is False
         assert ensure_bool(value="FALSE") is False
+        assert ensure_bool(value="  False ") is False
         assert ensure_bool(value="False") is False
         assert ensure_bool(value="false") is False
         assert ensure_bool(value="no") is False
@@ -30,5 +31,6 @@ class TestUtils:
         assert ensure_bool(value="non_boolean") is True
         assert ensure_bool(value="1") is True
         assert ensure_bool(value="TRUE") is True
+        assert ensure_bool(value=" True  ") is True
         assert ensure_bool(value="True") is True
         assert ensure_bool(value="true") is True
