@@ -1,4 +1,4 @@
-## [UNRELEASED] kedro-neptune 0.1.2
+## kedro-neptune 0.1.2
 
 ### Fixes
 - Fixed custom run id generation on catalog creation ([#42](https://github.com/neptune-ai/kedro-neptune/pull/42))
