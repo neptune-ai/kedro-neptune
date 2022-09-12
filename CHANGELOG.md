@@ -1,3 +1,8 @@
+## kedro-neptune 0.1.3
+
+### Changes
+- Changed integrations utils to be imported from non-internal package ([#44](https://github.com/neptune-ai/kedro-neptune/pull/44))
+
 ## kedro-neptune 0.1.2
 
 ### Fixes
