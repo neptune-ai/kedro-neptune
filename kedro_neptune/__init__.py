@@ -53,15 +53,13 @@ try:
     import neptune.new as neptune
     from neptune.new.types import File
     from neptune.new.handler import Handler
-    from neptune.new.internal.utils import verify_type
-    from neptune.new.internal.utils.paths import join_paths
+    from neptune.new.integrations.utils import verify_type, join_paths
 except ImportError:
     # neptune-client>=1.0.0 package structure
     import neptune
     from neptune.types import File
     from neptune.handler import Handler
-    from neptune.internal.utils import verify_type
-    from neptune.internal.utils.paths import join_paths
+    from neptune.integrations.utils import verify_type, join_paths
 
 INTEGRATION_VERSION_KEY = 'source_code/integrations/kedro-neptune'
 
