@@ -14,13 +14,16 @@
 # limitations under the License.
 #
 __all__ = [
-    'ensure_bool',
-    'parse_config_value',
+    "ensure_bool",
+    "parse_config_value",
 ]
 
 import os
-
-from typing import Any, Union, Optional
+from typing import (
+    Any,
+    Optional,
+    Union,
+)
 
 
 def parse_config_value(config_value: Any):
@@ -28,13 +31,13 @@ def parse_config_value(config_value: Any):
 
 
 def extract_env_variable(value: Any):
-    if isinstance(value, str) and value.startswith('$'):
-        return os.environ.get(value[1:], '')
+    if isinstance(value, str) and value.startswith("$"):
+        return os.environ.get(value[1:], "")
     return value
 
 
 def ensure_bool(value: Optional[Union[str, bool]]) -> bool:
     if isinstance(value, str):
-        return value.lower().strip() not in ('false', 'no', '0')
+        return value.lower().strip() not in ("false", "no", "0")
 
     return value

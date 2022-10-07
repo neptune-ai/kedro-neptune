@@ -15,11 +15,15 @@
 #
 import time
 from ast import literal_eval
-from typing import Dict, Any, Optional, List
+from typing import (
+    Any,
+    Dict,
+    List,
+    Optional,
+)
 
 from kedro.framework.project import configure_project
 from kedro.framework.session import KedroSession
-
 
 try:
     # neptune-client=0.9.0 package structure
@@ -29,11 +33,7 @@ except ImportError:
     import neptune
 
 
-def run_pipeline(
-        project: str,
-        run_params: Dict[str, Any],
-        session_params: Dict[str, Any]
-):
+def run_pipeline(project: str, run_params: Dict[str, Any], session_params: Dict[str, Any]):
     configure_project(project)
     with KedroSession.create(project, **session_params) as session:
         session.run(**run_params)
@@ -48,16 +48,16 @@ def prepare_testing_job():
         capture_stdout=False,
         capture_hardware_metrics=False,
         capture_traceback=False,
-        source_files=[]
+        source_files=[],
     )
 
 
 def check_node_metadata(run: neptune.Run, node_namespace: str, inputs: List, outputs: Optional[List] = None):
     assert run.exists(node_namespace)
-    assert run.exists(f'{node_namespace}/execution_time')
-    assert run.exists(f'{node_namespace}/inputs')
-    assert sorted(literal_eval(run[f'{node_namespace}/inputs'].fetch())) == inputs
+    assert run.exists(f"{node_namespace}/execution_time")
+    assert run.exists(f"{node_namespace}/inputs")
+    assert sorted(literal_eval(run[f"{node_namespace}/inputs"].fetch())) == inputs
 
     if outputs:
-        assert run.exists(f'{node_namespace}/outputs')
-        assert sorted(literal_eval(run[f'{node_namespace}/outputs'].fetch())) == outputs
+        assert run.exists(f"{node_namespace}/outputs")
+        assert sorted(literal_eval(run[f"{node_namespace}/outputs"].fetch())) == outputs
