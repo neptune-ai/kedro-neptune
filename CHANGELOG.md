@@ -1,3 +1,9 @@
+## [UNRELEASED] kedro-neptune 0.1.4
+
+### Changes
+- Moved `kedro_neptune` package to `src` directory ([#50](https://github.com/neptune-ai/kedro-neptune/pull/50))
+
+
 ## kedro-neptune 0.1.3
 
 ### Changes
