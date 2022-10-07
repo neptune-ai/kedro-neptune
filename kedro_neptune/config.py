@@ -13,10 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import List
 from dataclasses import dataclass
+from typing import List
 
-from kedro_neptune.utils import parse_config_value, ensure_bool
+from kedro_neptune.utils import (
+    ensure_bool,
+    parse_config_value,
+)
 
 
 @dataclass()
@@ -31,18 +34,14 @@ class NeptuneConfig:
 def get_neptune_config(settings) -> NeptuneConfig:
     config_loader = settings.CONFIG_LOADER_CLASS(settings.CONF_SOURCE, **settings.CONFIG_LOADER_ARGS)
     credentials = config_loader.get("credentials_neptune*")
-    config = config_loader.get('neptune*')
+    config = config_loader.get("neptune*")
 
-    api_token = parse_config_value(credentials['neptune']['api_token'])
-    project = parse_config_value(config['neptune']['project'])
-    base_namespace = parse_config_value(config['neptune']['base_namespace'])
-    source_files = parse_config_value(config['neptune']['upload_source_files'])
-    enabled = ensure_bool(parse_config_value(config['neptune'].get('enabled', True)))
+    api_token = parse_config_value(credentials["neptune"]["api_token"])
+    project = parse_config_value(config["neptune"]["project"])
+    base_namespace = parse_config_value(config["neptune"]["base_namespace"])
+    source_files = parse_config_value(config["neptune"]["upload_source_files"])
+    enabled = ensure_bool(parse_config_value(config["neptune"].get("enabled", True)))
 
     return NeptuneConfig(
-        api_token=api_token,
-        project=project,
-        base_namespace=base_namespace,
-        source_files=source_files,
-        enabled=enabled
+        api_token=api_token, project=project, base_namespace=base_namespace, source_files=source_files, enabled=enabled
     )

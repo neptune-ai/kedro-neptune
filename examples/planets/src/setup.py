@@ -1,8 +1,9 @@
-from setuptools import find_packages, setup
-
-entry_point = (
-    "planets = planets.__main__:main"
+from setuptools import (
+    find_packages,
+    setup,
 )
+
+entry_point = "planets = planets.__main__:main"
 
 
 # get the dependencies and installs

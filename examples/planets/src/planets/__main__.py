@@ -4,7 +4,10 @@ as `planets` and `python -m planets`
 import importlib
 from pathlib import Path
 
-from kedro.framework.cli.utils import KedroCliError, load_entry_points
+from kedro.framework.cli.utils import (
+    KedroCliError,
+    load_entry_points,
+)
 from kedro.framework.project import configure_project
 
 

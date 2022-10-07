@@ -10,7 +10,7 @@ Kedro plugin for experiment tracking and metadata management. It lets you browse
 * and do whatever else you would expect from a modern ML metadata store
 
 ![image](https://user-images.githubusercontent.com/97611089/160640893-9b95aac1-095e-4869-88a1-99f2cba5a59f.png)
-*Kedro pipeline metadata in custom dashboard in the Neptune UI* 
+*Kedro pipeline metadata in custom dashboard in the Neptune UI*
 
 Note: Kedro-Neptune plugin supports distributed pipeline execution and works in Kedro setups that use orchestrators like Airflow or Kubeflow.
 
@@ -39,11 +39,11 @@ import neptune.new as neptune
 
 # Add a Neptune run handler to the report_accuracy() function
 # and log metrics to neptune_run
-def report_accuracy(predictions: np.ndarray, test_y: pd.DataFrame, 
+def report_accuracy(predictions: np.ndarray, test_y: pd.DataFrame,
                     neptune_run: neptune.run.Handler) -> None:
     target = np.argmax(test_y.to_numpy(), axis=1)
     accuracy = np.sum(predictions == target) / target.shape[0]
-    
+
     neptune_run["nodes/report/accuracy"] = accuracy * 100
 
 # Add the Neptune run handler to the Kedro pipeline

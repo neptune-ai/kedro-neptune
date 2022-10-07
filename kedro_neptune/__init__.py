@@ -14,12 +14,7 @@
 # limitations under the License.
 #
 
-__all__ = [
-    'NeptuneRunDataSet',
-    'NeptuneFileDataSet',
-    'neptune_hooks',
-    'init'
-]
+__all__ = ["NeptuneRunDataSet", "NeptuneFileDataSet", "neptune_hooks", "init"]
 
 import hashlib
 import json
@@ -27,7 +22,11 @@ import os
 import sys
 import time
 import urllib.parse
-from typing import Any, Dict, Optional
+from typing import (
+    Any,
+    Dict,
+    Optional,
+)
 
 import click
 from kedro.extras.datasets.text import TextDataSet
@@ -35,11 +34,14 @@ from kedro.framework.hooks import hook_impl
 from kedro.framework.project import settings
 from kedro.framework.session import KedroSession
 from kedro.framework.startup import ProjectMetadata
-from kedro.io import DataCatalog, MemoryDataSet
+from kedro.io import (
+    DataCatalog,
+    MemoryDataSet,
+)
 from kedro.io.core import (
     AbstractDataSet,
-    get_filepath_str,
     Version,
+    get_filepath_str,
 )
 from kedro.pipeline import Pipeline
 from kedro.pipeline.node import Node
@@ -51,27 +53,33 @@ from kedro_neptune.config import get_neptune_config
 try:
     # neptune-client=0.9.0+ package structure
     import neptune.new as neptune
-    from neptune.new.types import File
     from neptune.new.handler import Handler
-    from neptune.new.integrations.utils import verify_type, join_paths
+    from neptune.new.integrations.utils import (
+        join_paths,
+        verify_type,
+    )
+    from neptune.new.types import File
 except ImportError:
     # neptune-client>=1.0.0 package structure
     import neptune
-    from neptune.types import File
     from neptune.handler import Handler
-    from neptune.integrations.utils import verify_type, join_paths
+    from neptune.integrations.utils import (
+        join_paths,
+        verify_type,
+    )
+    from neptune.types import File
 
-INTEGRATION_VERSION_KEY = 'source_code/integrations/kedro-neptune'
+INTEGRATION_VERSION_KEY = "source_code/integrations/kedro-neptune"
 
-__version__ = get_versions()['version']
+__version__ = get_versions()["version"]
 
 
-@click.group(name='Neptune')
+@click.group(name="Neptune")
 def commands():
     """Kedro plugin for logging with Neptune.ai"""
 
 
-@commands.group(name='neptune')
+@commands.group(name="neptune")
 def neptune_commands():
     pass
 
@@ -112,16 +120,20 @@ INITIAL_NEPTUNE_CATALOG = """\
 """
 
 PROMPT_API_TOKEN = """Pass Neptune API Token or press enter if you want to \
-use $NEPTUNE_API_TOKEN environment variable:""".replace('\n', '')
+use $NEPTUNE_API_TOKEN environment variable:""".replace(
+    "\n", ""
+)
 PROMPT_PROJECT_NAME = """Pass Neptune project name in a WORKSPACE/PROJECT format or press enter if you want to \
-use $NEPTUNE_PROJECT environment variable:""".replace('\n', '')
+use $NEPTUNE_PROJECT environment variable:""".replace(
+    "\n", ""
+)
 
 
 @neptune_commands.command()
-@click.option('--api-token', prompt=PROMPT_API_TOKEN, default='$NEPTUNE_API_TOKEN')
-@click.option('--project', prompt=PROMPT_PROJECT_NAME, default='$NEPTUNE_PROJECT')
-@click.option('--base-namespace', default='kedro')
-@click.option('--config', default='base')
+@click.option("--api-token", prompt=PROMPT_API_TOKEN, default="$NEPTUNE_API_TOKEN")
+@click.option("--project", prompt=PROMPT_PROJECT_NAME, default="$NEPTUNE_PROJECT")
+@click.option("--base-namespace", default="kedro")
+@click.option("--config", default="base")
 @click.pass_obj
 def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace: str, config: str):
     """Command line interface (CLI) command for initializing Kedro-Neptune plugin.
@@ -176,40 +188,40 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
     context = session.load_context()
 
     yaml = YAML()
-    context.credentials_file = context.project_path / settings.CONF_SOURCE / 'local' / 'credentials_neptune.yml'
+    context.credentials_file = context.project_path / settings.CONF_SOURCE / "local" / "credentials_neptune.yml"
 
     if not context.credentials_file.exists():
-        with context.credentials_file.open('w') as credentials_file:
+        with context.credentials_file.open("w") as credentials_file:
             credentials_template = yaml.load(INITIAL_NEPTUNE_CREDENTIALS)
-            credentials_template['neptune']['api_token'] = api_token
+            credentials_template["neptune"]["api_token"] = api_token
 
             yaml.dump(credentials_template, credentials_file)
 
-            click.echo(f'Created credentials_neptune.yml configuration file: {context.credentials_file}')
+            click.echo(f"Created credentials_neptune.yml configuration file: {context.credentials_file}")
 
-    context.config_file = context.project_path / settings.CONF_SOURCE / config / 'neptune.yml'
+    context.config_file = context.project_path / settings.CONF_SOURCE / config / "neptune.yml"
 
     if not context.config_file.exists():
-        with context.config_file.open('w') as config_file:
+        with context.config_file.open("w") as config_file:
             config_template = yaml.load(INITIAL_NEPTUNE_CONFIG)
-            config_template['neptune']['project'] = project
-            config_template['neptune']['base_namespace'] = base_namespace
-            config_template['neptune']['upload_source_files'] = ['**/*.py', f'{settings.CONF_SOURCE}/{config}/*.yml']
+            config_template["neptune"]["project"] = project
+            config_template["neptune"]["base_namespace"] = base_namespace
+            config_template["neptune"]["upload_source_files"] = ["**/*.py", f"{settings.CONF_SOURCE}/{config}/*.yml"]
 
             yaml.dump(config_template, config_file)
 
-            click.echo(f'Creating neptune.yml configuration file in: {context.config_file}')
+            click.echo(f"Creating neptune.yml configuration file in: {context.config_file}")
 
-    context.catalog_file = context.project_path / settings.CONF_SOURCE / config / 'catalog_neptune.yml'
+    context.catalog_file = context.project_path / settings.CONF_SOURCE / config / "catalog_neptune.yml"
 
     if not context.catalog_file.exists():
-        with context.catalog_file.open('w') as catalog_file:
+        with context.catalog_file.open("w") as catalog_file:
             catalog_file.writelines(INITIAL_NEPTUNE_CATALOG)
-            click.echo(f'Creating catalog_neptune.yml configuration file: {context.catalog_file}')
+            click.echo(f"Creating catalog_neptune.yml configuration file: {context.catalog_file}")
 
 
 def _connection_mode(enabled: bool) -> str:
-    return 'async' if enabled else 'debug'
+    return "async" if enabled else "debug"
 
 
 class NeptuneRunDataSet(AbstractDataSet):
@@ -225,32 +237,29 @@ class NeptuneRunDataSet(AbstractDataSet):
     def _load(self) -> Handler:
         config = get_neptune_config(settings)
 
-        run = neptune.init(api_token=config.api_token,
-                           project=config.project,
-                           mode=_connection_mode(config.enabled),
-                           capture_stdout=False,
-                           capture_stderr=False,
-                           capture_hardware_metrics=False,
-                           capture_traceback=False,
-                           source_files=None)
+        run = neptune.init(
+            api_token=config.api_token,
+            project=config.project,
+            mode=_connection_mode(config.enabled),
+            capture_stdout=False,
+            capture_stderr=False,
+            capture_hardware_metrics=False,
+            capture_traceback=False,
+            source_files=None,
+        )
 
         return run[config.base_namespace]
 
 
 class BinaryFileDataSet(TextDataSet):
     def __init__(
-            self,
-            filepath: str,
-            version: Version = None,
-            credentials: Dict[str, Any] = None,
-            fs_args: Dict[str, Any] = None,
+        self,
+        filepath: str,
+        version: Version = None,
+        credentials: Dict[str, Any] = None,
+        fs_args: Dict[str, Any] = None,
     ) -> None:
-        super().__init__(
-            filepath=filepath,
-            version=version,
-            credentials=credentials,
-            fs_args=fs_args
-        )
+        super().__init__(filepath=filepath, version=version, credentials=credentials, fs_args=fs_args)
 
     def _describe(self) -> Dict[str, Any]:
         load_path = get_filepath_str(self._get_load_path(), self._protocol)
@@ -258,21 +267,18 @@ class BinaryFileDataSet(TextDataSet):
         path = urllib.parse.urlparse(load_path).path
         extension = os.path.splitext(path)[1][1:]
 
-        return dict(
-            extension=extension,
-            **super()._describe()
-        )
+        return dict(extension=extension, **super()._describe())
 
     def _save(self, data: bytes) -> None:
         path = get_filepath_str(self._get_load_path(), self._protocol)
 
-        with self._fs.open(path, mode='wb') as fs_file:
+        with self._fs.open(path, mode="wb") as fs_file:
             return fs_file.write(data)
 
     def _load(self) -> bytes:
         path = get_filepath_str(self._get_load_path(), self._protocol)
 
-        with self._fs.open(path, mode='rb') as fs_file:
+        with self._fs.open(path, mode="rb") as fs_file:
             return fs_file.read()
 
 
@@ -313,42 +319,33 @@ class NeptuneFileDataSet(BinaryFileDataSet):
     .. _Kedro TextDataSet:
         https://kedro.readthedocs.io/en/stable/kedro.extras.datasets.text.TextDataSet.html
     """
+
     def __init__(
-            self,
-            filepath: str,
-            credentials: Dict[str, Any] = None,
-            fs_args: Dict[str, Any] = None,
+        self,
+        filepath: str,
+        credentials: Dict[str, Any] = None,
+        fs_args: Dict[str, Any] = None,
     ):
-        super().__init__(
-            filepath=filepath,
-            version=None,
-            credentials=credentials,
-            fs_args=fs_args
-        )
+        super().__init__(filepath=filepath, version=None, credentials=credentials, fs_args=fs_args)
 
 
 def log_file_dataset(namespace: Handler, name: str, dataset: NeptuneFileDataSet):
     # pylint: disable=protected-access
-    if not namespace.container.exists(f'{namespace._path}/{name}'):
+    if not namespace.container.exists(f"{namespace._path}/{name}"):
         data = dataset.load()
-        extension = dataset._describe().get('extension')
+        extension = dataset._describe().get("extension")
 
         try:
             file = File.create_from(data)
         except TypeError:
-            file = File.from_content(
-                data,
-                extension=extension
-            )
+            file = File.from_content(data, extension=extension)
 
-        namespace[name].upload(
-            file
-        )
+        namespace[name].upload(file)
 
 
 def log_parameters(namespace: Handler, catalog: DataCatalog):
     # pylint: disable=protected-access
-    namespace['parameters'] = catalog._data_sets['parameters'].load()
+    namespace["parameters"] = catalog._data_sets["parameters"].load()
 
 
 def log_dataset_metadata(namespace: Handler, name: str, dataset: AbstractDataSet):
@@ -359,45 +356,36 @@ def log_dataset_metadata(namespace: Handler, name: str, dataset: AbstractDataSet
     except AttributeError:
         pass
 
-    namespace[name] = {
-        'type': type(dataset).__name__,
-        'name': name,
-        **additional_parameters
-    }
+    namespace[name] = {"type": type(dataset).__name__, "name": name, **additional_parameters}
 
 
 def log_data_catalog_metadata(namespace: Handler, catalog: DataCatalog):
     # pylint: disable=protected-access
-    namespace = namespace['catalog']
+    namespace = namespace["catalog"]
 
     for name, dataset in catalog._data_sets.items():
         if dataset.exists() and not namespace.container.exists(join_paths(namespace._path, name)):
             if not isinstance(dataset, MemoryDataSet) and not isinstance(dataset, NeptuneRunDataSet):
-                log_dataset_metadata(namespace=namespace['datasets'], name=name, dataset=dataset)
+                log_dataset_metadata(namespace=namespace["datasets"], name=name, dataset=dataset)
 
             if isinstance(dataset, NeptuneFileDataSet):
-                log_file_dataset(namespace=namespace['files'], name=name, dataset=dataset)
+                log_file_dataset(namespace=namespace["files"], name=name, dataset=dataset)
 
     log_parameters(namespace=namespace, catalog=catalog)
 
 
 def log_pipeline_metadata(namespace: Handler, pipeline: Pipeline):
-    namespace['structure'].upload(File.from_content(
-        json.dumps(
-            json.loads(pipeline.to_json()),
-            indent=4,
-            sort_keys=True
-        ),
-        'json'
-    ))
+    namespace["structure"].upload(
+        File.from_content(json.dumps(json.loads(pipeline.to_json()), indent=4, sort_keys=True), "json")
+    )
 
 
 def log_run_params(namespace: Handler, run_params: Dict[str, Any]):
-    namespace['run_params'] = run_params
+    namespace["run_params"] = run_params
 
 
 def log_command(namespace: Handler):
-    namespace['kedro_command'] = ' '.join(['kedro'] + sys.argv[1:])
+    namespace["kedro_command"] = " ".join(["kedro"] + sys.argv[1:])
 
 
 class NeptuneHooks:
@@ -409,34 +397,28 @@ class NeptuneHooks:
     @hook_impl
     def after_catalog_created(self, catalog: DataCatalog) -> None:
         self._run_id = hashlib.md5(str(time.time()).encode()).hexdigest()
-        os.environ['NEPTUNE_CUSTOM_RUN_ID'] = self._run_id
+        os.environ["NEPTUNE_CUSTOM_RUN_ID"] = self._run_id
 
-        catalog.add(
-            data_set_name='neptune_run',
-            data_set=NeptuneRunDataSet()
-        )
+        catalog.add(data_set_name="neptune_run", data_set=NeptuneRunDataSet())
 
     @hook_impl
-    def before_pipeline_run(
-            self,
-            run_params: Dict[str, Any],
-            pipeline: Pipeline,
-            catalog: DataCatalog
-    ) -> None:
+    def before_pipeline_run(self, run_params: Dict[str, Any], pipeline: Pipeline, catalog: DataCatalog) -> None:
         config = get_neptune_config(settings)
 
-        run = neptune.init(api_token=config.api_token,
-                           project=config.project,
-                           mode=_connection_mode(config.enabled),
-                           custom_run_id=self._run_id,
-                           source_files=config.source_files or None)
+        run = neptune.init(
+            api_token=config.api_token,
+            project=config.project,
+            mode=_connection_mode(config.enabled),
+            custom_run_id=self._run_id,
+            source_files=config.source_files or None,
+        )
 
         run[INTEGRATION_VERSION_KEY] = __version__
 
         current_namespace = run[config.base_namespace]
 
-        os.environ['NEPTUNE_API_TOKEN'] = config.api_token or ''
-        os.environ['NEPTUNE_PROJECT'] = config.project or ''
+        os.environ["NEPTUNE_API_TOKEN"] = config.api_token or ""
+        os.environ["NEPTUNE_PROJECT"] = config.project or ""
 
         log_command(namespace=current_namespace)
         log_run_params(namespace=current_namespace, run_params=run_params)
@@ -444,51 +426,38 @@ class NeptuneHooks:
         log_pipeline_metadata(namespace=current_namespace, pipeline=pipeline)
 
     @hook_impl
-    def before_node_run(
-            self,
-            node: Node,
-            inputs: Dict[str, Any],
-            catalog: DataCatalog
-    ):
-        run = catalog.load('neptune_run')
-        current_namespace = run[f'nodes/{node.short_name}']
+    def before_node_run(self, node: Node, inputs: Dict[str, Any], catalog: DataCatalog):
+        run = catalog.load("neptune_run")
+        current_namespace = run[f"nodes/{node.short_name}"]
 
         if inputs:
-            current_namespace['inputs'] = list(sorted(inputs.keys()))
+            current_namespace["inputs"] = list(sorted(inputs.keys()))
 
         for input_name, input_value in inputs.items():
-            if input_name.startswith('params:'):
+            if input_name.startswith("params:"):
                 current_namespace[f'parameters/{input_name[len("params:"):]}'] = input_value
 
         self._node_execution_timers[node.short_name] = time.time()
 
     @hook_impl
-    def after_node_run(
-            self,
-            node: Node,
-            catalog: DataCatalog,
-            outputs: Dict[str, Any]
-    ) -> None:
+    def after_node_run(self, node: Node, catalog: DataCatalog, outputs: Dict[str, Any]) -> None:
         # pylint: disable=protected-access
         execution_time = float(time.time() - self._node_execution_timers[node.short_name])
 
-        run = catalog.load('neptune_run')
-        current_namespace = run[f'nodes/{node.short_name}']
-        current_namespace['execution_time'] = execution_time
+        run = catalog.load("neptune_run")
+        current_namespace = run[f"nodes/{node.short_name}"]
+        current_namespace["execution_time"] = execution_time
 
         if outputs:
-            current_namespace['outputs'] = list(sorted(outputs.keys()))
+            current_namespace["outputs"] = list(sorted(outputs.keys()))
 
         log_data_catalog_metadata(namespace=run, catalog=catalog)
         run.container.sync()
 
     @hook_impl
-    def after_pipeline_run(
-            self,
-            catalog: DataCatalog
-    ) -> None:
+    def after_pipeline_run(self, catalog: DataCatalog) -> None:
         # pylint: disable=protected-access
-        run = catalog.load('neptune_run')
+        run = catalog.load("neptune_run")
         log_data_catalog_metadata(namespace=run, catalog=catalog)
         run.container.sync()
 
