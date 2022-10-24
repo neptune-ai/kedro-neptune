@@ -345,7 +345,7 @@ def log_file_dataset(namespace: Handler, name: str, dataset: NeptuneFileDataSet)
 
 def log_parameters(namespace: Handler, catalog: DataCatalog):
     # pylint: disable=protected-access
-    namespace["parameters"] = str(catalog._data_sets["parameters"].load())
+    namespace["parameters"] = catalog._data_sets["parameters"].load()
 
 
 def log_dataset_metadata(namespace: Handler, name: str, dataset: AbstractDataSet):
