@@ -20,6 +20,11 @@ runs:
         run: pip install -e .[dev]
         shell: bash
 
+      - name: List dependencies
+        run: |
+          pip list
+        shell: bash
+
       - name: Lint
         working-directory: ${{ inputs.working_directory }}
         run: python -m pylint -j 0 -f parseable kedro_neptune tests
