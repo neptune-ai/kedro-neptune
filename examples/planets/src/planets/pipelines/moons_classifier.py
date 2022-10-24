@@ -1,8 +1,4 @@
-import math
-from typing import (
-    Any,
-    Dict,
-)
+from typing import Any
 
 import fastai.tabular.model
 import neptune.new.integrations.optuna as optuna_utils
