@@ -58,7 +58,7 @@ class Objective(object):
 
     def __call__(self, trial: optuna.trial.Trial):
         params = {
-            "wd": trial.suggest_loguniform("weight_decay", 0.001, 0.1),
+            "wd": trial.suggest_float("weight_decay", 0.001, 0.1),
         }
 
         self.model.fit_one_cycle(
