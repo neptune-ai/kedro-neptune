@@ -15,5 +15,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e .[dev]
-      - name: pre-commit run
+
+      - name: Pre-commit
         uses: pre-commit/action@v3.0.0

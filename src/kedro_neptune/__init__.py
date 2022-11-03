@@ -324,7 +324,6 @@ class NeptuneFileDataSet(BinaryFileDataSet):
 
 
 def log_file_dataset(namespace: Handler, name: str, dataset: NeptuneFileDataSet):
-    # pylint: disable=protected-access
     if not namespace.container.exists(f"{namespace._path}/{name}"):
         data = dataset.load()
         extension = dataset._describe().get("extension")
@@ -338,14 +337,12 @@ def log_file_dataset(namespace: Handler, name: str, dataset: NeptuneFileDataSet)
 
 
 def log_parameters(namespace: Handler, catalog: DataCatalog):
-    # pylint: disable=protected-access
     namespace["parameters"] = catalog._data_sets["parameters"].load()
 
 
 def log_dataset_metadata(namespace: Handler, name: str, dataset: AbstractDataSet):
     additional_parameters = {}
     try:
-        # pylint: disable=protected-access
         additional_parameters = dataset._describe()
     except AttributeError:
         pass
@@ -354,7 +351,6 @@ def log_dataset_metadata(namespace: Handler, name: str, dataset: AbstractDataSet
 
 
 def log_data_catalog_metadata(namespace: Handler, catalog: DataCatalog):
-    # pylint: disable=protected-access
     namespace = namespace["catalog"]
 
     for name, dataset in catalog._data_sets.items():
@@ -387,7 +383,6 @@ class NeptuneHooks:
         self._run_id: Optional[str] = None
         self._node_execution_timers: Dict[str, float] = {}
 
-    # pylint: disable=unused-argument
     @hook_impl
     def after_catalog_created(self, catalog: DataCatalog) -> None:
         self._run_id = hashlib.md5(str(time.time()).encode()).hexdigest()
@@ -435,7 +430,6 @@ class NeptuneHooks:
 
     @hook_impl
     def after_node_run(self, node: Node, catalog: DataCatalog, outputs: Dict[str, Any]) -> None:
-        # pylint: disable=protected-access
         execution_time = float(time.time() - self._node_execution_timers[node.short_name])
 
         run = catalog.load("neptune_run")
@@ -450,7 +444,6 @@ class NeptuneHooks:
 
     @hook_impl
     def after_pipeline_run(self, catalog: DataCatalog) -> None:
-        # pylint: disable=protected-access
         run = catalog.load("neptune_run")
         log_data_catalog_metadata(namespace=run, catalog=catalog)
         run.container.sync()

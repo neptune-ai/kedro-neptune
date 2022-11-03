@@ -25,11 +25,6 @@ runs:
           pip list
         shell: bash
 
-      - name: Lint
-        working-directory: ${{ inputs.working_directory }}
-        run: python -m pylint -j 0 -f parseable kedro_neptune tests
-        shell: bash
-
       - name: Build and test
         working-directory: ${{ inputs.working_directory }}/examples/planets
         run: export PYTHONPATH=$PWD/src; py.test ../../tests
