@@ -20,6 +20,11 @@ runs:
         run: pip install -e .[dev]
         shell: bash
 
+      - name: List dependencies
+        run: |
+          pip list
+        shell: bash
+
       - name: Build and test
         working-directory: ${{ inputs.working_directory }}/examples/planets
         run: export PYTHONPATH=$PWD/src; py.test ../../tests
