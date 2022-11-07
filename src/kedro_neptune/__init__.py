@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-__all__ = ["NeptuneRunDataSet", "NeptuneFileDataSet", "neptune_hooks", "init"]
+__all__ = ["NeptuneRunDataSet", "NeptuneFileDataSet", "neptune_hooks", "init", "__version__"]
 
 import hashlib
 import json
@@ -47,8 +47,8 @@ from kedro.pipeline import Pipeline
 from kedro.pipeline.node import Node
 from ruamel.yaml import YAML
 
-from kedro_neptune._version import get_versions
 from kedro_neptune.config import get_neptune_config
+from kedro_neptune.version import __version__
 
 try:
     # neptune-client=0.9.0+ package structure
@@ -64,8 +64,6 @@ except ImportError:
     from neptune.types import File
 
 INTEGRATION_VERSION_KEY = "source_code/integrations/kedro-neptune"
-
-__version__ = get_versions()["version"]
 
 
 @click.group(name="Neptune")
