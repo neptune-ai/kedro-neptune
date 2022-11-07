@@ -9,9 +9,11 @@ jobs:
         python-version: [3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
+
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+
       - name: Test
         env:
           NEPTUNE_API_TOKEN: ${{ secrets.E2E_NEPTUNE_API_TOKEN }}
@@ -24,12 +26,18 @@ jobs:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     steps:
       - uses: actions/checkout@v2
+
       - uses: actions/setup-python@v2
         with:
-          python-version: 3.8
-      - name: Build and test
+          python-version: 3.9
+
+      - name: Install build dependencies
+        run: pip install poetry poetry-dynamic-versioning
+
+      - name: Build package
         run : |
-          python setup.py sdist
+          poetry build
+
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@v1.5.1
         with:
