@@ -74,7 +74,6 @@ packages = [
 
 [tool.poetry.urls]
 "Tracker" = "https://github.com/neptune-ai/kedro-neptune/issues"
-"Source" = "https://github.com/neptune-ai/kedro-neptune"
 "Documentation" = "https://docs.neptune.ai/integrations/kedro/"
 
 [tool.poetry.plugins."kedro.project_commands"]
