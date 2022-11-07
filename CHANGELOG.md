@@ -2,7 +2,7 @@
 
 ### Changes
 - Moved `kedro_neptune` package to `src` directory ([#50](https://github.com/neptune-ai/kedro-neptune/pull/50))
-- Poetry as a package builder ([#?](?))
+- Poetry as a package builder ([#56](https://github.com/neptune-ai/kedro-neptune/pull/56))
 
 ## kedro-neptune 0.1.3
 
