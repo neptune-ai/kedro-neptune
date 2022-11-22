@@ -29,10 +29,9 @@ from neptune.new.metadata_containers import Run
 
 
 def assert_structure(travel_speed: int = 10000):
-    run = restore_run()
-
     # wait for the queues to finish syncing data to server
     time.sleep(5)
+    run = restore_run()
 
     assert run.exists("sys")
     assert run.exists("kedro")
