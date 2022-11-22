@@ -29,7 +29,7 @@ def furthest(distances_to_planets: pd.DataFrame) -> Dict[str, Any]:
 def travel_time(furthest_planet_distance: float, furthest_planet_name: str, travel_speed: float) -> float:
     travel_hours = furthest_planet_distance / travel_speed
 
-    neptune_run = neptune.init(
+    neptune_run = neptune.init_run(
         capture_stdout=False, capture_stderr=False, capture_hardware_metrics=False, source_files=[]
     )
 

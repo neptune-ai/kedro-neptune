@@ -229,7 +229,7 @@ class NeptuneRunDataSet(AbstractDataSet):
     def _load(self) -> Handler:
         config = get_neptune_config(settings)
 
-        run = neptune.init(
+        run = neptune.init_run(
             api_token=config.api_token,
             project=config.project,
             mode=_connection_mode(config.enabled),
@@ -392,7 +392,7 @@ class NeptuneHooks:
     def before_pipeline_run(self, run_params: Dict[str, Any], pipeline: Pipeline, catalog: DataCatalog) -> None:
         config = get_neptune_config(settings)
 
-        run = neptune.init(
+        run = neptune.init_run(
             api_token=config.api_token,
             project=config.project,
             mode=_connection_mode(config.enabled),
