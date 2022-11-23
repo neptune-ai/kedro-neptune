@@ -335,7 +335,14 @@ def log_file_dataset(namespace: Handler, name: str, dataset: NeptuneFileDataSet)
 
 
 def log_parameters(namespace: Handler, catalog: DataCatalog):
-    namespace["parameters"] = catalog._data_sets["parameters"].load()
+    parameters = dict(catalog.load("parameters"))
+
+    for param_name, param_value in parameters.items():
+        value = param_value
+        if not isinstance(value, (int, float, str)):
+            value = str(param_value)
+
+        namespace[f"parameters/{param_name}"] = value
 
 
 def log_dataset_metadata(namespace: Handler, name: str, dataset: AbstractDataSet):
