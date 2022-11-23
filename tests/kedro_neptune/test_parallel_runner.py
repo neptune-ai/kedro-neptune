@@ -13,15 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from kedro.runner import ParallelRunner
+
 from tests.kedro_neptune.utils.kedro_utils import run_pipeline
 from tests.kedro_neptune.utils.run_utils import assert_structure
 
 
-def test_standard():
-    run_pipeline(project="planets")
+def test_parallel_runner():
+    run_pipeline(project="planets", run_params={"runner": ParallelRunner(2)})
     assert_structure()
-
-
-def test_run_with_params():
-    run_pipeline(project="planets", session_params={"extra_params": {"travel_speed": 40000}})
-    assert_structure(travel_speed=40000)

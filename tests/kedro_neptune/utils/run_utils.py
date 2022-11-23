@@ -29,7 +29,7 @@ from neptune.new.metadata_containers import Run
 
 
 # It may take some time to refresh cache
-@backoff.on_exception(backoff.constant, AssertionError, interval=5)
+@backoff.on_exception(backoff.expo, AssertionError, max_value=100)
 def assert_structure(travel_speed: int = 10000):
     run = restore_run()
 
