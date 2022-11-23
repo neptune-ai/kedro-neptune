@@ -17,20 +17,20 @@ __all__ = ["assert_structure"]
 
 import hashlib
 import os
-import time
 from ast import literal_eval
 from typing import (
     List,
     Optional,
 )
 
+import backoff
 from neptune.new import init_run
 from neptune.new.metadata_containers import Run
 
 
+# It may take some time to refresh cache
+@backoff.on_exception(backoff.expo, AssertionError, max_time=300)
 def assert_structure(travel_speed: int = 10000):
-    # wait for the queues to finish syncing data to server
-    time.sleep(10)
     run = restore_run()
 
     assert run.exists("sys")
