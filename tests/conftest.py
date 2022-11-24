@@ -56,8 +56,8 @@ def check_node_metadata(run: neptune.Run, node_namespace: str, inputs: List, out
     assert run.exists(node_namespace)
     assert run.exists(f"{node_namespace}/execution_time")
     assert run.exists(f"{node_namespace}/inputs")
-    assert sorted(literal_eval(run[f"{node_namespace}/inputs"].fetch())) == inputs
+    assert sorted(literal_eval(run[f"{node_namespace}/inputs"].fetch())) == sorted(inputs)
 
     if outputs:
         assert run.exists(f"{node_namespace}/outputs")
-        assert sorted(literal_eval(run[f"{node_namespace}/outputs"].fetch())) == outputs
+        assert sorted(literal_eval(run[f"{node_namespace}/outputs"].fetch())) == sorted(outputs)

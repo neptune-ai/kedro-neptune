@@ -71,8 +71,6 @@ class PlanetsTesting:
             file_content = handler.read()
         assert hashlib.md5(file_content).hexdigest() == "af37712c8c80afc9690e4b70b7a590c5"
 
-        assert run.exists("kedro/catalog/files/last_model")
-
         assert run.exists("kedro/catalog/files/logo")
         run["kedro/catalog/files/logo"].download("/tmp/file")
         with open("/tmp/file", "rb") as handler:
@@ -88,11 +86,9 @@ class PlanetsTesting:
             run, "kedro/nodes/furthest", ["distances_to_planets"], ["furthest_planet_distance", "furthest_planet_name"]
         )
 
-        check_node_metadata(run, "kedro/nodes/optimize", ["model", "neptune_run"])
+        check_node_metadata(run, "kedro/nodes/judge_model", ["neptune_run", "dataset"])
 
         check_node_metadata(run, "kedro/nodes/prepare_dataset", ["planets"], ["dataset"])
-
-        check_node_metadata(run, "kedro/nodes/prepare_model", ["dataset"], ["model"])
 
         check_node_metadata(
             run,
@@ -111,21 +107,6 @@ class PlanetsTesting:
         assert run.exists("furthest_planet/travel_months")
         assert run.exists("furthest_planet/travel_years")
         assert run["furthest_planet/name"].fetch() == "NEPTUNE"
-
-        assert run.exists("kedro/moons_classifier/best")
-        assert run.exists("kedro/moons_classifier/study")
-        assert run.exists("kedro/moons_classifier/trials")
-        assert run.exists("kedro/moons_classifier/visualizations")
-
-        assert run.exists("kedro/moons_classifier/trials/trials")
-        assert run.exists("kedro/moons_classifier/trials/trials/0")
-        assert run.exists("kedro/moons_classifier/trials/trials/1")
-        assert run.exists("kedro/moons_classifier/trials/trials/2")
-        assert run.exists("kedro/moons_classifier/trials/trials/3")
-        assert run.exists("kedro/moons_classifier/trials/trials/4")
-        assert run.exists("kedro/moons_classifier/trials/trials/0/metrics")
-        assert run.exists("kedro/moons_classifier/trials/trials/0/io_files")
-        assert run.exists("kedro/moons_classifier/trials/trials/0/config")
 
 
 class TestPlanetsParallel(PlanetsTesting):
