@@ -217,19 +217,24 @@ def _connection_mode(enabled: bool) -> str:
 
 
 class NeptuneRunDataSet(AbstractDataSet):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._run: Optional[neptune.Run] = None
+
     def _save(self, data: Dict[str, Any]) -> None:
-        raise NotImplementedError()
+        if self._run is not None:
+            self._run.sync(wait=True)
 
     def _describe(self) -> Dict[str, Any]:
         return {}
 
     def _exists(self) -> bool:
-        return True
+        return self._run is not None
 
     def _load(self) -> Handler:
         config = get_neptune_config(settings)
 
-        run = neptune.init_run(
+        self._run = neptune.init_run(
             api_token=config.api_token,
             project=config.project,
             mode=_connection_mode(config.enabled),
@@ -240,7 +245,13 @@ class NeptuneRunDataSet(AbstractDataSet):
             source_files=None,
         )
 
-        return run[config.base_namespace]
+        return self._run[config.base_namespace]
+
+    def _release(self) -> None:
+        if self._run is not None:
+            self._run.sync(wait=True)
+            del self._run
+            self._run = None
 
 
 class BinaryFileDataSet(TextDataSet):
@@ -446,6 +457,7 @@ class NeptuneHooks:
 
         log_data_catalog_metadata(namespace=run, catalog=catalog)
         run.container.sync()
+        catalog.release("neptune_run")
 
     @hook_impl
     def after_pipeline_run(self, catalog: DataCatalog) -> None:
