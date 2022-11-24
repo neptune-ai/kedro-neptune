@@ -22,3 +22,7 @@ from tests.kedro_neptune.utils.run_utils import assert_structure
 def test_parallel_runner():
     run_pipeline(project="planets", run_params={"runner": ParallelRunner(2)})
     assert_structure()
+
+
+if __name__ == "__main__":
+    test_parallel_runner()
