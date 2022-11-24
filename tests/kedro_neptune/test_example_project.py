@@ -18,14 +18,15 @@ from kedro.runner import ParallelRunner
 from tests.kedro_neptune.utils.kedro_utils import run_pipeline
 from tests.kedro_neptune.utils.run_utils import assert_structure
 
-# def test_standard():
-#     run_pipeline(project="planets")
-#     assert_structure()
-#
-#
-# def test_run_with_params():
-#     run_pipeline(project="planets", session_params={"extra_params": {"travel_speed": 40000}})
-#     assert_structure(travel_speed=40000)
+
+def test_standard():
+    run_pipeline(project="planets")
+    assert_structure()
+
+
+def test_run_with_params():
+    run_pipeline(project="planets", session_params={"extra_params": {"travel_speed": 40000}})
+    assert_structure(travel_speed=40000)
 
 
 def test_parallel_runner():

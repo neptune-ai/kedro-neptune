@@ -235,6 +235,11 @@ class NeptuneRunDataSet(AbstractDataSet):
         self.__dict__ = state
         self._set_run()
 
+    def __getstate__(self) -> dict:
+        properties = self.__dict__.copy()
+        properties["_run"] = None
+        return properties
+
     def _set_run(self):
         neptune_config = get_neptune_config(settings)
         self._run = neptune.init_run(
