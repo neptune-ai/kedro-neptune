@@ -234,16 +234,17 @@ class NeptuneRunDataSet(AbstractDataSet):
     def _load(self) -> Handler:
         config = get_neptune_config(settings)
 
-        self._run = neptune.init_run(
-            api_token=config.api_token,
-            project=config.project,
-            mode=_connection_mode(config.enabled),
-            capture_stdout=False,
-            capture_stderr=False,
-            capture_hardware_metrics=False,
-            capture_traceback=False,
-            source_files=None,
-        )
+        if self._run is None:
+            self._run = neptune.init_run(
+                api_token=config.api_token,
+                project=config.project,
+                mode=_connection_mode(config.enabled),
+                capture_stdout=False,
+                capture_stderr=False,
+                capture_hardware_metrics=False,
+                capture_traceback=False,
+                source_files=None,
+            )
 
         return self._run[config.base_namespace]
 
