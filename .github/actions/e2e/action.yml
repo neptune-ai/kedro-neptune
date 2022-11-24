@@ -25,11 +25,6 @@ runs:
           pip list
         shell: bash
 
-      - name: List brew openssl
-        run: |
-          brew --prefix openssl
-        shell: bash
-
       - name: Build and test
         working-directory: ${{ inputs.working_directory }}/examples/planets
         run: export PYTHONPATH=$PWD/src; py.test ../../tests
