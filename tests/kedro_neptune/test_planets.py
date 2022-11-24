@@ -30,6 +30,7 @@ EXPECTED_SYNC_TIME = 0
 
 class PlanetsTesting:
     def _test_planets_structure(self, run: neptune.Run, travel_speed: int = 10000):
+        # Base run information
         assert run.exists("kedro")
         assert run.exists("kedro/catalog")
         assert run.exists("kedro/nodes")
@@ -37,6 +38,7 @@ class PlanetsTesting:
         assert run.exists("kedro/run_params")
         assert run.exists("kedro/structure")
 
+        # Data catalog
         assert run.exists("kedro/catalog/datasets")
         assert run.exists("kedro/catalog/files")
         assert run.exists("kedro/catalog/parameters")
@@ -75,6 +77,7 @@ class PlanetsTesting:
         assert run.exists("kedro/catalog/parameters/travel_speed")
         assert run["kedro/catalog/parameters/travel_speed"].fetch() == travel_speed
 
+        # Nodes data
         check_node_metadata(run, "kedro/nodes/distances", ["planets"], ["distances_to_planets"])
         #
         # check_node_metadata(
@@ -96,13 +99,15 @@ class PlanetsTesting:
         # assert run.exists("kedro/nodes/travel_time/parameters/travel_speed")
         # assert run["kedro/nodes/travel_time/parameters/travel_speed"].fetch() == travel_speed
         #
-        # assert run.exists("furthest_planet")
-        # assert run.exists("furthest_planet/name")
-        # assert run.exists("furthest_planet/travel_days")
-        # assert run.exists("furthest_planet/travel_hours")
-        # assert run.exists("furthest_planet/travel_months")
-        # assert run.exists("furthest_planet/travel_years")
-        # assert run["furthest_planet/name"].fetch() == "NEPTUNE"
+
+        # User defined data
+        assert run.exists("furthest_planet")
+        assert run.exists("furthest_planet/name")
+        assert run.exists("furthest_planet/travel_days")
+        assert run.exists("furthest_planet/travel_hours")
+        assert run.exists("furthest_planet/travel_months")
+        assert run.exists("furthest_planet/travel_years")
+        assert run["furthest_planet/name"].fetch() == "NEPTUNE"
 
 
 class TestPlanetsParallel(PlanetsTesting):
