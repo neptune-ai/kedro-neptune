@@ -220,6 +220,7 @@ class NeptuneRunDataSet(AbstractDataSet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._run: Optional[neptune.Run] = None
+        self._loaded: bool = False
 
     def _save(self, data: Dict[str, Any]) -> None:
         if self._run is not None:
@@ -233,7 +234,8 @@ class NeptuneRunDataSet(AbstractDataSet):
 
     def __setstate__(self, state):
         self.__dict__ = state
-        self._set_run()
+        if self._loaded:
+            self._set_run()
 
     def __getstate__(self) -> dict:
         properties = self.__dict__.copy()
@@ -258,6 +260,7 @@ class NeptuneRunDataSet(AbstractDataSet):
 
         if self._run is None:
             self._set_run()
+        self._loaded = True
 
         return self._run[neptune_config.base_namespace]
 
@@ -266,6 +269,7 @@ class NeptuneRunDataSet(AbstractDataSet):
             self._run.sync(wait=True)
             del self._run
             self._run = None
+            self._loaded = False
 
 
 class BinaryFileDataSet(TextDataSet):
