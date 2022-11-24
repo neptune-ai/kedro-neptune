@@ -231,22 +231,30 @@ class NeptuneRunDataSet(AbstractDataSet):
     def _exists(self) -> bool:
         return self._run is not None
 
+    def __setstate__(self, state):
+        self.__dict__ = state
+        self._set_run()
+
+    def _set_run(self):
+        neptune_config = get_neptune_config(settings)
+        self._run = neptune.init_run(
+            api_token=neptune_config.api_token,
+            project=neptune_config.project,
+            mode=_connection_mode(neptune_config.enabled),
+            capture_stdout=False,
+            capture_stderr=False,
+            capture_hardware_metrics=False,
+            capture_traceback=False,
+            source_files=None,
+        )
+
     def _load(self) -> Handler:
-        config = get_neptune_config(settings)
+        neptune_config = get_neptune_config(settings)
 
         if self._run is None:
-            self._run = neptune.init_run(
-                api_token=config.api_token,
-                project=config.project,
-                mode=_connection_mode(config.enabled),
-                capture_stdout=False,
-                capture_stderr=False,
-                capture_hardware_metrics=False,
-                capture_traceback=False,
-                source_files=None,
-            )
+            self._set_run()
 
-        return self._run[config.base_namespace]
+        return self._run[neptune_config.base_namespace]
 
     def _release(self) -> None:
         if self._run is not None:
