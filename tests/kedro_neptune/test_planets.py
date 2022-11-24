@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# import hashlib
+import hashlib
 import os
 
 from kedro.runner import ParallelRunner
@@ -59,22 +59,21 @@ class PlanetsTesting:
             "type": "NeptuneFileDataSet",
             "version": "None",
         }
+        assert run.exists("kedro/catalog/files/planets@neptune")
+        run["kedro/catalog/files/planets@neptune"].download("/tmp/file")
+        with open("/tmp/file", "rb") as handler:
+            file_content = handler.read()
+        assert hashlib.md5(file_content).hexdigest() == "af37712c8c80afc9690e4b70b7a590c5"
 
-        # assert run.exists("kedro/catalog/files/planets@neptune")
-        # run["kedro/catalog/files/planets@neptune"].download("/tmp/file")
-        # with open("/tmp/file", "rb") as handler:
-        #     file_content = handler.read()
-        # assert hashlib.md5(file_content).hexdigest() == "af37712c8c80afc9690e4b70b7a590c5"
-        #
-        # assert run.exists("kedro/catalog/files/logo")
-        # run["kedro/catalog/files/logo"].download("/tmp/file")
-        # with open("/tmp/file", "rb") as handler:
-        #     file_content = handler.read()
-        # assert hashlib.md5(file_content).hexdigest() == "85d289d3ed3f321557b6c428b7b35a67"
-        #
-        # assert run.exists("kedro/catalog/parameters/travel_speed")
-        # assert run["kedro/catalog/parameters/travel_speed"].fetch() == travel_speed
-        #
+        assert run.exists("kedro/catalog/files/logo")
+        run["kedro/catalog/files/logo"].download("/tmp/file")
+        with open("/tmp/file", "rb") as handler:
+            file_content = handler.read()
+        assert hashlib.md5(file_content).hexdigest() == "85d289d3ed3f321557b6c428b7b35a67"
+
+        assert run.exists("kedro/catalog/parameters/travel_speed")
+        assert run["kedro/catalog/parameters/travel_speed"].fetch() == travel_speed
+
         # check_node_metadata(run, "kedro/nodes/distances", ["planets"], ["distances_to_planets"])
         #
         # check_node_metadata(
