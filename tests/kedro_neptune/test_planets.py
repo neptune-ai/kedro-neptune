@@ -16,7 +16,7 @@
 import hashlib
 import os
 
-from kedro.runner import ParallelRunner
+# from kedro.runner import ParallelRunner
 from neptune import new as neptune
 
 from tests.conftest import (
@@ -112,22 +112,22 @@ class PlanetsTesting:
         assert run["furthest_planet/name"].fetch() == "NEPTUNE"
 
 
-class TestPlanetsParallel(PlanetsTesting):
-    def test_parallel(self):
-        run_pipeline(project="planets", run_params={"runner": ParallelRunner(2)}, session_params={})
+# class TestPlanetsParallel(PlanetsTesting):
+#     def test_parallel(self):
+#         run_pipeline(project="planets", run_params={"runner": ParallelRunner(2)}, session_params={})
+#         run = prepare_testing_job()
+#         self._test_planets_structure(run)
+
+
+class TestPlanetsSequential(PlanetsTesting):
+    def test_sequential(self):
+        run_pipeline(project="planets", run_params={}, session_params={})
         run = prepare_testing_job()
         self._test_planets_structure(run)
 
 
-# class TestPlanetsSequential(PlanetsTesting):
-#     def test_sequential(self):
-#         run_pipeline(project="planets", run_params={}, session_params={})
-#         run = prepare_testing_job()
-#         self._test_planets_structure(run)
-#
-#
-# class TestPlanetsParameters(PlanetsTesting):
-#     def test_parameters(self):
-#         run_pipeline(project="planets", run_params={}, session_params={"extra_params": {"travel_speed": 40000}})
-#         run = prepare_testing_job()
-#         self._test_planets_structure(run, travel_speed=40000)
+class TestPlanetsParameters(PlanetsTesting):
+    def test_parameters(self):
+        run_pipeline(project="planets", run_params={}, session_params={"extra_params": {"travel_speed": 40000}})
+        run = prepare_testing_job()
+        self._test_planets_structure(run, travel_speed=40000)

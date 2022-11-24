@@ -44,7 +44,7 @@ def run_pipeline(project: str, run_params: Dict[str, Any], session_params: Dict[
 
 
 def prepare_testing_job():
-    return neptune.init(
+    return neptune.init_run(
         capture_stderr=False,
         capture_stdout=False,
         capture_hardware_metrics=False,
