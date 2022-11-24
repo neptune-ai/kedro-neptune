@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 # import hashlib
-# import os
+import os
 
 from kedro.runner import ParallelRunner
 from neptune import new as neptune
@@ -29,41 +29,37 @@ EXPECTED_SYNC_TIME = 0
 
 class PlanetsTesting:
     def _test_planets_structure(self, run: neptune.Run, travel_speed: int = 10000):
-        assert run.exists("sys")
-        # assert run.exists("kedro")
-        # assert run.exists("monitoring")
-        # assert run.exists("source_code")
-        #
-        # assert run.exists("kedro/catalog")
-        # assert run.exists("kedro/nodes")
-        # assert run.exists("kedro/kedro_command")
-        # assert run.exists("kedro/run_params")
-        # assert run.exists("kedro/structure")
-        #
-        # assert run.exists("kedro/catalog/datasets")
-        # assert run.exists("kedro/catalog/files")
-        # assert run.exists("kedro/catalog/parameters")
-        #
-        # assert run.exists("kedro/catalog/datasets/planets")
-        # assert run["kedro/catalog/datasets/planets"].fetch() == {
-        #     "filepath": f"{os.getcwd()}/data/planets/planets.csv",
-        #     "name": "planets",
-        #     "protocol": "file",
-        #     "save_args": {"index": False},
-        #     "type": "CSVDataSet",
-        #     "version": "None",
-        # }
-        #
-        # assert run.exists("kedro/catalog/datasets/planets@neptune")
-        # assert run["kedro/catalog/datasets/planets@neptune"].fetch() == {
-        #     "extension": "csv",
-        #     "filepath": f"{os.getcwd()}/data/planets/planets.csv",
-        #     "name": "planets@neptune",
-        #     "protocol": "file",
-        #     "type": "NeptuneFileDataSet",
-        #     "version": "None",
-        # }
-        #
+        assert run.exists("kedro")
+        assert run.exists("kedro/catalog")
+        assert run.exists("kedro/nodes")
+        assert run.exists("kedro/kedro_command")
+        assert run.exists("kedro/run_params")
+        assert run.exists("kedro/structure")
+
+        assert run.exists("kedro/catalog/datasets")
+        assert run.exists("kedro/catalog/files")
+        assert run.exists("kedro/catalog/parameters")
+
+        assert run.exists("kedro/catalog/datasets/planets")
+        assert run["kedro/catalog/datasets/planets"].fetch() == {
+            "filepath": f"{os.getcwd()}/data/planets/planets.csv",
+            "name": "planets",
+            "protocol": "file",
+            "save_args": {"index": False},
+            "type": "CSVDataSet",
+            "version": "None",
+        }
+
+        assert run.exists("kedro/catalog/datasets/planets@neptune")
+        assert run["kedro/catalog/datasets/planets@neptune"].fetch() == {
+            "extension": "csv",
+            "filepath": f"{os.getcwd()}/data/planets/planets.csv",
+            "name": "planets@neptune",
+            "protocol": "file",
+            "type": "NeptuneFileDataSet",
+            "version": "None",
+        }
+
         # assert run.exists("kedro/catalog/files/planets@neptune")
         # run["kedro/catalog/files/planets@neptune"].download("/tmp/file")
         # with open("/tmp/file", "rb") as handler:
