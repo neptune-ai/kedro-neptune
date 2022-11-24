@@ -232,15 +232,15 @@ class NeptuneRunDataSet(AbstractDataSet):
     def _exists(self) -> bool:
         return self._run is not None
 
-    # def __setstate__(self, state):
-    #     self.__dict__ = state
-    #     if self._loaded:
-    #         self._set_run()
-    #
-    # def __getstate__(self) -> dict:
-    #     properties = self.__dict__.copy()
-    #     properties["_run"] = None
-    #     return properties
+    def __setstate__(self, state):
+        self.__dict__ = state
+        if self._loaded:
+            self._set_run()
+
+    def __getstate__(self) -> dict:
+        properties = self.__dict__.copy()
+        properties["_run"] = None
+        return properties
 
     def _set_run(self):
         neptune_config = get_neptune_config(settings)
