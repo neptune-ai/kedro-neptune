@@ -229,7 +229,7 @@ class NeptuneRunDataSet(AbstractDataSet):
     def _load(self) -> Handler:
         config = get_neptune_config(settings)
 
-        run = neptune.init(
+        run = neptune.init_run(
             api_token=config.api_token,
             project=config.project,
             mode=_connection_mode(config.enabled),
@@ -335,7 +335,14 @@ def log_file_dataset(namespace: Handler, name: str, dataset: NeptuneFileDataSet)
 
 
 def log_parameters(namespace: Handler, catalog: DataCatalog):
-    namespace["parameters"] = catalog._data_sets["parameters"].load()
+    parameters = dict(catalog.load("parameters"))
+
+    for param_name, param_value in parameters.items():
+        value = param_value
+        if not isinstance(value, (int, float, str)):
+            value = str(param_value)
+
+        namespace[f"parameters/{param_name}"] = value
 
 
 def log_dataset_metadata(namespace: Handler, name: str, dataset: AbstractDataSet):
@@ -392,7 +399,7 @@ class NeptuneHooks:
     def before_pipeline_run(self, run_params: Dict[str, Any], pipeline: Pipeline, catalog: DataCatalog) -> None:
         config = get_neptune_config(settings)
 
-        run = neptune.init(
+        run = neptune.init_run(
             api_token=config.api_token,
             project=config.project,
             mode=_connection_mode(config.enabled),
