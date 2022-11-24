@@ -39,7 +39,7 @@ def run_pipeline(project: str, run_params: Dict[str, Any], session_params: Dict[
         session.run(**run_params)
 
     # wait for the queues to finish syncing data to server
-    time.sleep(5)
+    time.sleep(15)
 
 
 def prepare_testing_job():
