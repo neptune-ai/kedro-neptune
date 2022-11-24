@@ -19,7 +19,8 @@ import os
 from kedro.runner import ParallelRunner
 from neptune import new as neptune
 
-from tests.conftest import (  # check_node_metadata,
+from tests.conftest import (
+    check_node_metadata,
     prepare_testing_job,
     run_pipeline,
 )
@@ -74,7 +75,7 @@ class PlanetsTesting:
         assert run.exists("kedro/catalog/parameters/travel_speed")
         assert run["kedro/catalog/parameters/travel_speed"].fetch() == travel_speed
 
-        # check_node_metadata(run, "kedro/nodes/distances", ["planets"], ["distances_to_planets"])
+        check_node_metadata(run, "kedro/nodes/distances", ["planets"], ["distances_to_planets"])
         #
         # check_node_metadata(
         #     run, "kedro/nodes/furthest",
