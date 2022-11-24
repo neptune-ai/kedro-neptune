@@ -88,19 +88,18 @@ class PlanetsTesting:
             outputs=["furthest_planet_distance", "furthest_planet_name"],
         )
         check_node_metadata(run=run, node_namespace="kedro/nodes/judge_model", inputs=["neptune_run", "dataset"])
-
-        # check_node_metadata(run, "kedro/nodes/prepare_dataset", ["planets"], ["dataset"])
-        #
-        # check_node_metadata(
-        #     run,
-        #     "kedro/nodes/travel_time",
-        #     ["furthest_planet_distance", "furthest_planet_name", "params:travel_speed"],
-        #     ["travel_hours"],
-        # )
-        # assert run.exists("kedro/nodes/travel_time/parameters")
-        # assert run.exists("kedro/nodes/travel_time/parameters/travel_speed")
-        # assert run["kedro/nodes/travel_time/parameters/travel_speed"].fetch() == travel_speed
-        #
+        check_node_metadata(
+            run=run, node_namespace="kedro/nodes/prepare_dataset", inputs=["planets"], outputs=["dataset"]
+        )
+        check_node_metadata(
+            run=run,
+            node_namespace="kedro/nodes/travel_time",
+            inputs=["furthest_planet_distance", "furthest_planet_name", "params:travel_speed"],
+            outputs=["travel_hours"],
+        )
+        assert run.exists("kedro/nodes/travel_time/parameters")
+        assert run.exists("kedro/nodes/travel_time/parameters/travel_speed")
+        assert run["kedro/nodes/travel_time/parameters/travel_speed"].fetch() == travel_speed
 
         # User defined data
         assert run.exists("furthest_planet")
