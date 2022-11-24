@@ -16,7 +16,7 @@
 import hashlib
 import os
 
-from kedro.runner import ParallelRunner
+# from kedro.runner import ParallelRunner
 from neptune import new as neptune
 
 from tests.conftest import (
@@ -128,11 +128,11 @@ class PlanetsTesting:
         assert run.exists("kedro/moons_classifier/trials/trials/0/config")
 
 
-class TestPlanetsParallel(PlanetsTesting):
-    def test_parallel(self):
-        run_pipeline(project="planets", run_params={"runner": ParallelRunner(2)}, session_params={})
-        run = prepare_testing_job()
-        self._test_planets_structure(run)
+# class TestPlanetsParallel(PlanetsTesting):
+#     def test_parallel(self):
+#         run_pipeline(project="planets", run_params={"runner": ParallelRunner(2)}, session_params={})
+#         run = prepare_testing_job()
+#         self._test_planets_structure(run)
 
 
 class TestPlanetsSequential(PlanetsTesting):
