@@ -78,15 +78,17 @@ class PlanetsTesting:
         assert run["kedro/catalog/parameters/travel_speed"].fetch() == travel_speed
 
         # Nodes data
-        check_node_metadata(run, "kedro/nodes/distances", ["planets"], ["distances_to_planets"])
-        #
-        # check_node_metadata(
-        #     run, "kedro/nodes/furthest",
-        #     ["distances_to_planets"], ["furthest_planet_distance", "furthest_planet_name"]
-        # )
-        #
-        # check_node_metadata(run, "kedro/nodes/judge_model", ["neptune_run", "dataset"])
-        #
+        check_node_metadata(
+            run=run, node_namespace="kedro/nodes/distances", inputs=["planets"], outputs=["distances_to_planets"]
+        )
+        check_node_metadata(
+            run=run,
+            node_namespace="kedro/nodes/furthest",
+            inputs=["distances_to_planets"],
+            outputs=["furthest_planet_distance", "furthest_planet_name"],
+        )
+        check_node_metadata(run=run, node_namespace="kedro/nodes/judge_model", inputs=["neptune_run", "dataset"])
+
         # check_node_metadata(run, "kedro/nodes/prepare_dataset", ["planets"], ["dataset"])
         #
         # check_node_metadata(
