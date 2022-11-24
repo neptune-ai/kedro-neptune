@@ -22,6 +22,7 @@ from typing import (
     Optional,
 )
 
+import backoff
 from kedro.framework.project import configure_project
 from kedro.framework.session import KedroSession
 
@@ -52,6 +53,8 @@ def prepare_testing_job():
     )
 
 
+# It may take some time to refresh cache
+@backoff.on_exception(backoff.expo, AssertionError, max_value=10)
 def check_node_metadata(run: neptune.Run, node_namespace: str, inputs: List, outputs: Optional[List] = None):
     assert run.exists(node_namespace)
     assert run.exists(f"{node_namespace}/execution_time")
