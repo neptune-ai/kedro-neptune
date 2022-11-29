@@ -4,9 +4,10 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
+      max-parallel: 4
       matrix:
-        os: [ubuntu-latest]
-        python-version: [3.7, 3.8, 3.9]
+        os: [macos-latest, ubuntu-latest]
+        python-version: [3.7, 3.8, 3.9, "3.10"]
     steps:
       - uses: actions/checkout@v2
 
@@ -17,7 +18,7 @@ jobs:
       - name: Test
         env:
           NEPTUNE_API_TOKEN: ${{ secrets.E2E_NEPTUNE_API_TOKEN }}
-          NEPTUNE_PROJECT: e2e-tests/kedro-neptune-e2e
+          NEPTUNE_PROJECT: e2e-tests/integrations
         uses: ./.github/actions/e2e
 
   publish:

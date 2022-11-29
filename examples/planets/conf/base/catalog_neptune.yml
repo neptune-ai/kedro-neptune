@@ -19,7 +19,3 @@ planets@neptune:
 logo:
   type: kedro_neptune.NeptuneFileDataSet
   filepath: data/planets/logo.png
-
-last_model:
-  type: kedro_neptune.NeptuneFileDataSet
-  filepath: models/model.pth
