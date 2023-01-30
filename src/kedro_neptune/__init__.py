@@ -63,6 +63,8 @@ except ImportError:
     from neptune.integrations.utils import join_paths
     from neptune.types import File
 
+from neptune.new.utils import stringify_unsupported
+
 INTEGRATION_VERSION_KEY = "source_code/integrations/kedro-neptune"
 
 
@@ -381,7 +383,7 @@ def log_dataset_metadata(namespace: Handler, name: str, dataset: AbstractDataSet
     except AttributeError:
         pass
 
-    namespace[name] = {"type": type(dataset).__name__, "name": name, **additional_parameters}
+    namespace[name] = stringify_unsupported({"type": type(dataset).__name__, "name": name, **additional_parameters})
 
 
 def log_data_catalog_metadata(namespace: Handler, catalog: DataCatalog):
@@ -405,7 +407,7 @@ def log_pipeline_metadata(namespace: Handler, pipeline: Pipeline):
 
 
 def log_run_params(namespace: Handler, run_params: Dict[str, Any]):
-    namespace["run_params"] = run_params
+    namespace["run_params"] = stringify_unsupported(run_params)
 
 
 def log_command(namespace: Handler):
@@ -474,7 +476,10 @@ class NeptuneHooks:
             current_namespace["outputs"] = list(sorted(outputs.keys()))
 
         log_data_catalog_metadata(namespace=run, catalog=catalog)
-        run.container.sync()
+        if isinstance(run, Handler):
+            run.get_root_object().sync()
+        else:
+            run.sync()
         catalog.release("neptune_run")
 
     @hook_impl
