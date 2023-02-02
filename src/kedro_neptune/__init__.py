@@ -456,7 +456,7 @@ class NeptuneHooks:
         current_namespace = run[f"nodes/{node.short_name}"]
 
         if inputs:
-            current_namespace["inputs"] = list(sorted(inputs.keys()))
+            current_namespace["inputs"] = stringify_unsupported(list(sorted(inputs.keys())))
 
         for input_name, input_value in inputs.items():
             if input_name.startswith("params:"):
