@@ -56,14 +56,14 @@ try:
     from neptune.new.handler import Handler
     from neptune.new.integrations.utils import join_paths
     from neptune.new.types import File
+    from neptune.new.utils import stringify_unsupported
 except ImportError:
     # neptune-client>=1.0.0 package structure
     import neptune
     from neptune.handler import Handler
     from neptune.integrations.utils import join_paths
     from neptune.types import File
-
-from neptune.new.utils import stringify_unsupported
+    from neptune.utils import stringify_unsupported
 
 INTEGRATION_VERSION_KEY = "source_code/integrations/kedro-neptune"
 
