@@ -7,6 +7,7 @@
 ### Changes
 - Simplified example project and removed unrelated files ([#58](https://github.com/neptune-ai/kedro-neptune/pull/58))
 - Better life-time of the internally created Run in `NeptuneRunDataSet` ([#58](https://github.com/neptune-ai/kedro-neptune/pull/58))
+- Updated the integration for compatibility with `neptune-client` `1.0.0`. ([#59](https://github.com/neptune-ai/kedro-neptune/pull/59))
 
 ## kedro-neptune 0.1.4
 
