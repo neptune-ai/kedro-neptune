@@ -268,7 +268,7 @@ class NeptuneRunDataSet(AbstractDataSet):
 
     def _release(self) -> None:
         if self._run is not None:
-            self._run.sync(wait=True)
+            self._run.stop()
             del self._run
             self._run = None
             self._loaded = False
