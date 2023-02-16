@@ -4,6 +4,7 @@ from kedro.pipeline import (
     node,
 )
 from neptune import new as neptune
+from neptune.new.utils import stringify_unsupported
 
 
 # ------- Number of moons predictor --------
@@ -23,7 +24,7 @@ def judge_model(neptune_run: neptune.handler.Handler, dataset: pd.DataFrame):
         compute_acc[compute_acc["Predict"] == compute_acc["Has Many Moons"]].count() / compute_acc.count() * 100.0
     )
 
-    neptune_run["accuracy"] = accuracy
+    neptune_run["accuracy"] = stringify_unsupported(accuracy)
 
 
 def create_pipeline(**kwargs):

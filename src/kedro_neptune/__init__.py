@@ -402,7 +402,9 @@ def log_data_catalog_metadata(namespace: Handler, catalog: DataCatalog):
 
 def log_pipeline_metadata(namespace: Handler, pipeline: Pipeline):
     namespace["structure"].upload(
-        File.from_content(json.dumps(json.loads(pipeline.to_json()), indent=4, sort_keys=True), "json")
+        File.from_content(
+            content=json.dumps(json.loads(pipeline.to_json()), indent=4, sort_keys=True), extension="json"
+        )
     )
 
 
@@ -473,7 +475,7 @@ class NeptuneHooks:
         current_namespace["execution_time"] = execution_time
 
         if outputs:
-            current_namespace["outputs"] = list(sorted(outputs.keys()))
+            current_namespace["outputs"] = stringify_unsupported(list(sorted(outputs.keys())))
 
         log_data_catalog_metadata(namespace=run, catalog=catalog)
         if isinstance(run, Handler):
