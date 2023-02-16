@@ -3,7 +3,7 @@ from kedro.pipeline import (
     Pipeline,
     node,
 )
-from neptune import new as neptune
+from neptune.handler import Handler
 from neptune.new.utils import stringify_unsupported
 
 
@@ -14,7 +14,7 @@ def prepare_dataset(planets: pd.DataFrame) -> pd.DataFrame:
     return planets
 
 
-def judge_model(neptune_run: neptune.handler.Handler, dataset: pd.DataFrame):
+def judge_model(neptune_run: Handler, dataset: pd.DataFrame):
     def classifier(mass):
         return mass > 2.0
 
