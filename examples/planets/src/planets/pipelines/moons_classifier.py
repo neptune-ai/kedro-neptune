@@ -3,7 +3,13 @@ from kedro.pipeline import (
     Pipeline,
     node,
 )
-from neptune import new as neptune
+
+try:
+    from neptune.new.handler import Handler
+    from neptune.new.utils import stringify_unsupported
+except ImportError:
+    from neptune.handler import Handler
+    from neptune.utils import stringify_unsupported
 
 
 # ------- Number of moons predictor --------
@@ -13,7 +19,7 @@ def prepare_dataset(planets: pd.DataFrame) -> pd.DataFrame:
     return planets
 
 
-def judge_model(neptune_run: neptune.handler.Handler, dataset: pd.DataFrame):
+def judge_model(neptune_run: Handler, dataset: pd.DataFrame):
     def classifier(mass):
         return mass > 2.0
 
@@ -23,7 +29,7 @@ def judge_model(neptune_run: neptune.handler.Handler, dataset: pd.DataFrame):
         compute_acc[compute_acc["Predict"] == compute_acc["Has Many Moons"]].count() / compute_acc.count() * 100.0
     )
 
-    neptune_run["accuracy"] = accuracy
+    neptune_run["accuracy"] = stringify_unsupported(accuracy)
 
 
 def create_pipeline(**kwargs):
