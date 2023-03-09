@@ -23,8 +23,6 @@ from typing import (
     Optional,
 )
 
-import backoff
-
 try:
     from neptune import (
         Run,
@@ -36,7 +34,6 @@ except ImportError:
 
 
 # It may take some time to refresh cache
-@backoff.on_exception(backoff.expo, AssertionError, max_value=10)
 def assert_structure(travel_speed: int = 10000):
     run = restore_run()
 
