@@ -10,7 +10,7 @@ runs:
     using: "composite"
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
         with:
           repository: neptune-ai/kedro-neptune
           path: ${{ inputs.working_directory }}
@@ -25,7 +25,7 @@ runs:
           pip list
         shell: bash
 
-      - name: Test standard
+      - name: test
         working-directory: ${{ inputs.working_directory }}/examples/planets
-        run: pytest -v ../../tests
+        run: export PYTHONPATH=$PWD/src; pytest  -v ../../tests"
         shell: bash
