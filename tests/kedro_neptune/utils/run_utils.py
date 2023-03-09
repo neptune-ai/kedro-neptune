@@ -17,6 +17,7 @@ __all__ = ["assert_structure"]
 
 import hashlib
 import os
+import time
 from ast import literal_eval
 from typing import (
     List,
@@ -36,7 +37,7 @@ except ImportError:
 # It may take some time to refresh cache
 def assert_structure(travel_speed: int = 10000):
     run = restore_run()
-
+    time.sleep(30)
     # Base run information
     assert run.exists("kedro")
     assert run.exists("kedro/catalog")
