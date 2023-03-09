@@ -27,13 +27,5 @@ runs:
 
       - name: Test standard
         working-directory: ${{ inputs.working_directory }}/examples/planets
-        run: pytest -v -m "not parallel"
-        shell: bash
-
-      - name: Test parallel run
-        working-directory: ${{ inputs.working_directory }}/examples/planets
-        run: pytest -v -m parallel
-        shell: bash
-      - name: Dumb test
-        run : pytest -v tests/kedro_neptune/test_utils.py
+        run: pytest -v
         shell: bash
