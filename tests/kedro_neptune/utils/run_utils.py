@@ -62,7 +62,19 @@ def assert_structure(travel_speed: int = 10000):
         assert run.exists("kedro/catalog/datasets/planets")
         print("######################################################################")
         print("OS CWD:", os.getcwd())
-        print(run["kedro/catalog/datasets/planets"].fetch())
+        d1 = run["kedro/catalog/datasets/planets"].fetch()
+        d2 = {
+            "filepath": f"{os.getcwd()}/data/planets/planets.csv",
+            "name": "planets",
+            "protocol": "file",
+            "save_args": {"index": False},
+            "type": "CSVDataSet",
+            "version": "None",
+        }
+        print(d1)
+        print(d2)
+        print(d1 == d2)
+
         # assert run["kedro/catalog/datasets/planets"].fetch() == {
         #     "filepath": f"{os.getcwd()}/data/planets/planets.csv",
         #     "name": "planets",
