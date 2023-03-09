@@ -70,8 +70,7 @@ def assert_structure(travel_speed: int = 10000):
         }
 
         assert run.exists("kedro/catalog/datasets/planets@neptune")
-        d1 = run["kedro/catalog/datasets/planets@neptune"].fetch()
-        d2 = {
+        assert run["kedro/catalog/datasets/planets@neptune"].fetch() == {
             "extension": "csv",
             "filepath": f"{os.getcwd()}/data/planets/planets.csv",
             "name": "planets@neptune",
@@ -79,16 +78,6 @@ def assert_structure(travel_speed: int = 10000):
             "type": "NeptuneFileDataSet",
             "version": "None",
         }
-        print(d1)
-        print(d2)
-        print(d1 == d2)
-        # assert run["kedro/catalog/datasets/planets@neptune"].fetch() == {
-        #     "extension": "csv",
-        #     "filepath": f"{os.getcwd()}/data/planets/planets.csv",
-        #     "name": "planets@neptune",
-        #     "type": "NeptuneFileDataSet",
-        #     "version": "None",
-        # }
         assert run.exists("kedro/catalog/files/planets@neptune")
         run["kedro/catalog/files/planets@neptune"].download("/tmp/file")
         with open("/tmp/file", "rb") as handler:
