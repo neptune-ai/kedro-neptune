@@ -75,6 +75,7 @@ def assert_structure(travel_speed: int = 10000):
             "extension": "csv",
             "filepath": f"{os.getcwd()}/data/planets/planets.csv",
             "name": "planets@neptune",
+            "protocol": "file",
             "type": "NeptuneFileDataSet",
             "version": "None",
         }
