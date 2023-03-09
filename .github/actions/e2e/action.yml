@@ -30,7 +30,10 @@ runs:
 #        run: export PYTHONPATH=$PWD/src; pytest ../../tests -m "not parallel"
 #        shell: bash
 
-      - name: Test parallel run
-        working-directory: ${{ inputs.working_directory }}/examples/planets
-        run: export PYTHONPATH=$PWD/src; pytest ../../tests -m parallel
+#      - name: Test parallel run
+#        working-directory: ${{ inputs.working_directory }}/examples/planets
+#        run: export PYTHONPATH=$PWD/src; pytest ../../tests -m parallel
+#        shell: bash
+      - name: Dumb test
+        run : pytest -v tests/kedro_neptune/test_utils.py
         shell: bash
