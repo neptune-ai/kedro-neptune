@@ -17,13 +17,12 @@ __all__ = ["assert_structure"]
 
 import hashlib
 import os
+import time
 from ast import literal_eval
 from typing import (
     List,
     Optional,
 )
-
-import backoff
 
 try:
     from neptune import (
@@ -36,8 +35,9 @@ except ImportError:
 
 
 # It may take some time to refresh cache
-@backoff.on_exception(backoff.expo, AssertionError, max_value=1, max_time=60)
+# @backoff.on_exception(backoff.expo, AssertionError, max_value=1, max_time=60)
 def assert_structure(travel_speed: int = 10000):
+    time.sleep(120)
     with init_run(
         capture_stderr=False,
         capture_stdout=False,
@@ -45,7 +45,7 @@ def assert_structure(travel_speed: int = 10000):
         capture_traceback=False,
         source_files=[],
     ) as run:
-
+        run.sync(wait=True)
         # Base run information
         assert run.exists("kedro")
         assert run.exists("kedro/catalog")
