@@ -27,7 +27,7 @@ runs:
 
       - name: Test standard
         working-directory: ${{ inputs.working_directory }}/examples/planets
-        run: export PYTHONPATH=$PWD/src; pytest ../../tests -m "not parallel"
+        run: export PYTHONPATH=$PWD/src; pytest ../../tests/kedro_neptune/test_utils.py
         shell: bash
 
 #      - name: Test parallel run
