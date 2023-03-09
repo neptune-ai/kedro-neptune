@@ -27,5 +27,5 @@ runs:
 
       - name: test
         working-directory: ${{ inputs.working_directory }}/examples/planets
-        run: export PYTHONPATH=$PWD/src; pytest  -v ../../tests"
+        run: export PYTHONPATH=$PWD/src; pytest  -v ../../tests
         shell: bash
