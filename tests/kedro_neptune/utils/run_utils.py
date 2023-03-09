@@ -24,8 +24,15 @@ from typing import (
 )
 
 import backoff
-from neptune.new import init_run
-from neptune.new.metadata_containers import Run
+
+try:
+    from neptune import (
+        Run,
+        init_run,
+    )
+except ImportError:
+    from neptune.new import init_run
+    from neptune.new.metadata_containers import Run
 
 
 # It may take some time to refresh cache
