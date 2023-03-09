@@ -37,7 +37,8 @@ except ImportError:
 # It may take some time to refresh cache
 def assert_structure(travel_speed: int = 10000):
     run = restore_run()
-    time.sleep(30)
+    run.sync()
+    time.sleep(60)
     # Base run information
     assert run.exists("kedro")
     assert run.exists("kedro/catalog")
