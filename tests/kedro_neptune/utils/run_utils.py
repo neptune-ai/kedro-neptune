@@ -17,12 +17,13 @@ __all__ = ["assert_structure"]
 
 import hashlib
 import os
-import time
 from ast import literal_eval
 from typing import (
     List,
     Optional,
 )
+
+import backoff
 
 try:
     from neptune import (
@@ -35,87 +36,95 @@ except ImportError:
 
 
 # It may take some time to refresh cache
+@backoff.on_exception(backoff.expo, AssertionError, max_value=10)
 def assert_structure(travel_speed: int = 10000):
-    run = restore_run()
-    run.sync()
-    time.sleep(60)
-    # Base run information
-    assert run.exists("kedro")
-    assert run.exists("kedro/catalog")
-    assert run.exists("kedro/nodes")
-    assert run.exists("kedro/kedro_command")
-    assert run.exists("kedro/run_params")
-    assert run.exists("kedro/structure")
+    with init_run(
+        capture_stderr=False,
+        capture_stdout=False,
+        capture_hardware_metrics=False,
+        capture_traceback=False,
+        source_files=[],
+    ) as run:
 
-    # Data catalog
-    assert run.exists("kedro/catalog/datasets")
-    assert run.exists("kedro/catalog/files")
-    assert run.exists("kedro/catalog/parameters")
+        # Base run information
+        assert run.exists("kedro")
+        assert run.exists("kedro/catalog")
+        assert run.exists("kedro/nodes")
+        assert run.exists("kedro/kedro_command")
+        assert run.exists("kedro/run_params")
+        assert run.exists("kedro/structure")
 
-    assert run.exists("kedro/catalog/datasets/planets")
-    assert run["kedro/catalog/datasets/planets"].fetch() == {
-        "filepath": f"{os.getcwd()}/data/planets/planets.csv",
-        "name": "planets",
-        "protocol": "file",
-        "save_args": {"index": False},
-        "type": "CSVDataSet",
-        "version": "None",
-    }
+        # Data catalog
+        assert run.exists("kedro/catalog/datasets")
+        assert run.exists("kedro/catalog/files")
+        assert run.exists("kedro/catalog/parameters")
 
-    assert run.exists("kedro/catalog/datasets/planets@neptune")
-    assert run["kedro/catalog/datasets/planets@neptune"].fetch() == {
-        "extension": "csv",
-        "filepath": f"{os.getcwd()}/data/planets/planets.csv",
-        "name": "planets@neptune",
-        "protocol": "file",
-        "type": "NeptuneFileDataSet",
-        "version": "None",
-    }
-    assert run.exists("kedro/catalog/files/planets@neptune")
-    run["kedro/catalog/files/planets@neptune"].download("/tmp/file")
-    with open("/tmp/file", "rb") as handler:
-        file_content = handler.read()
-    assert hashlib.md5(file_content).hexdigest() == "af37712c8c80afc9690e4b70b7a590c5"
+        assert run.exists("kedro/catalog/datasets/planets")
+        assert run["kedro/catalog/datasets/planets"].fetch() == {
+            "filepath": f"{os.getcwd()}/data/planets/planets.csv",
+            "name": "planets",
+            "protocol": "file",
+            "save_args": {"index": False},
+            "type": "CSVDataSet",
+            "version": "None",
+        }
 
-    assert run.exists("kedro/catalog/files/logo")
-    run["kedro/catalog/files/logo"].download("/tmp/file")
-    with open("/tmp/file", "rb") as handler:
-        file_content = handler.read()
-    assert hashlib.md5(file_content).hexdigest() == "85d289d3ed3f321557b6c428b7b35a67"
+        assert run.exists("kedro/catalog/datasets/planets@neptune")
+        assert run["kedro/catalog/datasets/planets@neptune"].fetch() == {
+            "extension": "csv",
+            "filepath": f"{os.getcwd()}/data/planets/planets.csv",
+            "name": "planets@neptune",
+            "protocol": "file",
+            "type": "NeptuneFileDataSet",
+            "version": "None",
+        }
+        assert run.exists("kedro/catalog/files/planets@neptune")
+        run["kedro/catalog/files/planets@neptune"].download("/tmp/file")
+        with open("/tmp/file", "rb") as handler:
+            file_content = handler.read()
+        assert hashlib.md5(file_content).hexdigest() == "af37712c8c80afc9690e4b70b7a590c5"
 
-    assert run.exists("kedro/catalog/parameters/travel_speed")
-    assert run["kedro/catalog/parameters/travel_speed"].fetch() == travel_speed
+        assert run.exists("kedro/catalog/files/logo")
+        run["kedro/catalog/files/logo"].download("/tmp/file")
+        with open("/tmp/file", "rb") as handler:
+            file_content = handler.read()
+        assert hashlib.md5(file_content).hexdigest() == "85d289d3ed3f321557b6c428b7b35a67"
 
-    # Nodes data
-    check_node_metadata(
-        run=run, node_namespace="kedro/nodes/distances", inputs=["planets"], outputs=["distances_to_planets"]
-    )
-    check_node_metadata(
-        run=run,
-        node_namespace="kedro/nodes/furthest",
-        inputs=["distances_to_planets"],
-        outputs=["furthest_planet_distance", "furthest_planet_name"],
-    )
-    check_node_metadata(run=run, node_namespace="kedro/nodes/judge_model", inputs=["neptune_run", "dataset"])
-    check_node_metadata(run=run, node_namespace="kedro/nodes/prepare_dataset", inputs=["planets"], outputs=["dataset"])
-    check_node_metadata(
-        run=run,
-        node_namespace="kedro/nodes/travel_time",
-        inputs=["furthest_planet_distance", "furthest_planet_name", "params:travel_speed"],
-        outputs=["travel_hours"],
-    )
-    assert run.exists("kedro/nodes/travel_time/parameters")
-    assert run.exists("kedro/nodes/travel_time/parameters/travel_speed")
-    assert run["kedro/nodes/travel_time/parameters/travel_speed"].fetch() == travel_speed
+        assert run.exists("kedro/catalog/parameters/travel_speed")
+        assert run["kedro/catalog/parameters/travel_speed"].fetch() == travel_speed
 
-    # User defined data
-    assert run.exists("furthest_planet")
-    assert run.exists("furthest_planet/name")
-    assert run.exists("furthest_planet/travel_days")
-    assert run.exists("furthest_planet/travel_hours")
-    assert run.exists("furthest_planet/travel_months")
-    assert run.exists("furthest_planet/travel_years")
-    assert run["furthest_planet/name"].fetch() == "NEPTUNE"
+        # Nodes data
+        check_node_metadata(
+            run=run, node_namespace="kedro/nodes/distances", inputs=["planets"], outputs=["distances_to_planets"]
+        )
+        check_node_metadata(
+            run=run,
+            node_namespace="kedro/nodes/furthest",
+            inputs=["distances_to_planets"],
+            outputs=["furthest_planet_distance", "furthest_planet_name"],
+        )
+        check_node_metadata(run=run, node_namespace="kedro/nodes/judge_model", inputs=["neptune_run", "dataset"])
+        check_node_metadata(
+            run=run, node_namespace="kedro/nodes/prepare_dataset", inputs=["planets"], outputs=["dataset"]
+        )
+        check_node_metadata(
+            run=run,
+            node_namespace="kedro/nodes/travel_time",
+            inputs=["furthest_planet_distance", "furthest_planet_name", "params:travel_speed"],
+            outputs=["travel_hours"],
+        )
+        assert run.exists("kedro/nodes/travel_time/parameters")
+        assert run.exists("kedro/nodes/travel_time/parameters/travel_speed")
+        assert run["kedro/nodes/travel_time/parameters/travel_speed"].fetch() == travel_speed
+
+        # User defined data
+        assert run.exists("furthest_planet")
+        assert run.exists("furthest_planet/name")
+        assert run.exists("furthest_planet/travel_days")
+        assert run.exists("furthest_planet/travel_hours")
+        assert run.exists("furthest_planet/travel_months")
+        assert run.exists("furthest_planet/travel_years")
+        assert run["furthest_planet/name"].fetch() == "NEPTUNE"
 
 
 def restore_run():
