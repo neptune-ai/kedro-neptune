@@ -25,12 +25,12 @@ runs:
           pip list
         shell: bash
 
-      - name: Test standard
-        working-directory: ${{ inputs.working_directory }}/examples/planets
-        run: export PYTHONPATH=$PWD/src; pytest ../../tests -m "not parallel"
-        shell: bash
-
-#      - name: Test parallel run
+#      - name: Test standard
 #        working-directory: ${{ inputs.working_directory }}/examples/planets
-#        run: export PYTHONPATH=$PWD/src; pytest ../../tests -m parallel
+#        run: export PYTHONPATH=$PWD/src; pytest ../../tests -m "not parallel"
 #        shell: bash
+
+      - name: Test parallel run
+        working-directory: ${{ inputs.working_directory }}/examples/planets
+        run: export PYTHONPATH=$PWD/src; pytest ../../tests -m parallel
+        shell: bash
