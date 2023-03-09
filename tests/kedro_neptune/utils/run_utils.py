@@ -16,6 +16,7 @@
 __all__ = ["assert_structure"]
 
 import hashlib
+import os
 import time
 from ast import literal_eval
 from typing import (
@@ -59,6 +60,8 @@ def assert_structure(travel_speed: int = 10000):
         assert run.exists("kedro/catalog/parameters")
 
         assert run.exists("kedro/catalog/datasets/planets")
+        print("######################################################################")
+        print("OS CWD:", os.getcwd())
         # assert run["kedro/catalog/datasets/planets"].fetch() == {
         #     "filepath": f"{os.getcwd()}/data/planets/planets.csv",
         #     "name": "planets",
