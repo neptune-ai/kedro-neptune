@@ -1,10 +1,11 @@
-## [UNRELEASED] 0.1.5
+##  0.1.5
 
 ### Fixes
 - Fixed some of latest `neptune-client` warning messages ([#58](https://github.com/neptune-ai/kedro-neptune/pull/58))
 - Fixed failing run on latest MacOS 12 ([#58](https://github.com/neptune-ai/kedro-neptune/pull/58))
 
 ### Changes
+- Removed `neptune` and `neptune-client` from base requirements for backward compatibility ([#62](https://github.com/neptune-ai/kedro-neptune/pull/62))
 - Simplified example project and removed unrelated files ([#58](https://github.com/neptune-ai/kedro-neptune/pull/58))
 - Better life-time of the internally created Run in `NeptuneRunDataSet` ([#58](https://github.com/neptune-ai/kedro-neptune/pull/58))
 - Updated the integration for compatibility with `neptune-client` `1.0.0`. ([#59](https://github.com/neptune-ai/kedro-neptune/pull/59))
