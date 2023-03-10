@@ -38,13 +38,7 @@ except ImportError:
 # @backoff.on_exception(backoff.expo, AssertionError, max_value=1, max_time=60)
 def assert_structure(travel_speed: int = 10000):
     time.sleep(30)
-    with init_run(
-        capture_stderr=False,
-        capture_stdout=False,
-        capture_hardware_metrics=False,
-        capture_traceback=False,
-        source_files=[],
-    ) as run:
+    with restore_run() as run:
         run.sync(wait=True)
         # Base run information
         assert run.exists("kedro")
