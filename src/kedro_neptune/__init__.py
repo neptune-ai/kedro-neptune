@@ -113,12 +113,12 @@ INITIAL_NEPTUNE_CATALOG = """\
 #
 """
 
-PROMPT_API_TOKEN = """Pass Neptune API Token or press enter if you want to \
-use $NEPTUNE_API_TOKEN environment variable:""".replace(
+PROMPT_API_TOKEN = """Pass a Neptune API token or press enter if you want to \
+use the $NEPTUNE_API_TOKEN environment variable:""".replace(
     "\n", ""
 )
-PROMPT_PROJECT_NAME = """Pass Neptune project name in a WORKSPACE/PROJECT format or press enter if you want to \
-use $NEPTUNE_PROJECT environment variable:""".replace(
+PROMPT_PROJECT_NAME = """Pass a Neptune project name in the form 'workspace/project' or press enter if you want to \
+use the $NEPTUNE_PROJECT environment variable:""".replace(
     "\n", ""
 )
 
@@ -130,10 +130,11 @@ use $NEPTUNE_PROJECT environment variable:""".replace(
 @click.option("--config", default="base")
 @click.pass_obj
 def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace: str, config: str):
-    """Command line interface (CLI) command for initializing Kedro-Neptune plugin.
+    """Command line interface (CLI) command for initializing the Kedro-Neptune plugin.
 
-    Kedro-Neptune plugin lets you log metadata related to Kedro pipelines to `Neptune.ai ML metadata store`_
-    so that you can monitor, visualize, and compare your pipelines and node outputs in the Neptune UI.
+    The Kedro-Neptune plugin lets you log metadata related to Kedro pipelines to
+    [neptune.ai](https://neptune.ai/) so that you can monitor, visualize,
+    and compare your pipelines and node outputs in the Neptune web application.
 
     After initializing it, whenever you run '$ kedro run', you will log:
     * parameters
@@ -144,39 +145,33 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
     * full Kedro run command
     * any additional metadata like metrics, charts, or images that you logged from inside of your node functions.
 
-    See `example project in Neptune`_.
-    You may also want to check `Neptune-Kedro integration docs page`_.
+    See an example project in Neptune: https://app.neptune.ai/o/common/org/kedro-integration/e/KED-1563/all
+
     Args:
-        api-token (string:) Neptune API token or the environment variable name where it is stored.
-            Default is '$NEPTUNE_API_TOKEN'. See `How to find your Neptune API token`_.
-        project (string): Neptune project name or the environment variable name where it is stored.
-            Default is '$NEPTUNE_API_TOKEN'. See `How to find your Neptune project name`_.
-        base-namespace (string): Namespace in Neptune where all the Kedro-related metadata is logged.
+        api-token: Neptune API token or the environment variable name where it is stored.
+            Default is '$NEPTUNE_API_TOKEN'.
+            Instructions: https://docs.neptune.ai/integrations/kedro/#configuring-neptune-api-token
+        project: Neptune project name or the environment variable name where it is stored.
+            Default is '$NEPTUNE_PROJECT'.
+            Instructions: https://docs.neptune.ai/setup/setting_project_name/
+        base-namespace: Namespace in the Neptune run where all the Kedro-related metadata is logged.
             Default is 'kedro'.
-        config (string): Name of the Subdirectory inside of the Kedro 'conf' directory for
+        config: Name of the subdirectory inside of the Kedro 'conf' directory for
             configuration and catalog files. Default is 'base'.
+
     Returns:
-        ``dict`` with all summary items.
+        `dict` with all summary items.
+
     Examples:
 
-        Pass required arguments directly
+        Pass required arguments directly:
         $ kedro neptune init --api-token $NEPTUNE_API_TOKEN --project common/kedro-integration
 
-        Use prompts to fill the required arguments
+        Use prompts to fill the required arguments:
         $ kedro neptune init
 
-    You may also want to check `Neptune-Kedro integration docs page`_.
-
-    .. _Neptune.ai ML metadata store:
-        https://neptune.ai/
-    .. _example project in Neptune:
-        https://app.neptune.ai/o/common/org/kedro-integration/e/KED-572
-    .. _Neptune-Kedro integration docs page:
-       https://docs.neptune.ai/integrations-and-supported-tools/pipeline-and-orchestration/kedro
-    .. _How to find your Neptune project name:
-       https://docs.neptune.ai/getting-started/installation#setting-the-project-name
-    .. _How to find your Neptune API token:
-       https://docs.neptune.ai/getting-started/installation#authentication-neptune-api-token
+    For detailed instructions and examples, see the Kedro-Neptune integration guide:
+        https://docs.neptune.ai/integrations/kedro/
     """
     session = KedroSession(metadata.package_name)
     context = session.load_context()
@@ -306,41 +301,39 @@ class BinaryFileDataSet(TextDataSet):
 
 
 class NeptuneFileDataSet(BinaryFileDataSet):
-    """NeptuneFileDataSet is a Kedro Data Set that lets you log files to Neptune.
+    """NeptuneFileDataSet is a Kedro DataSet that lets you log files to Neptune.
 
     It can be any file on the POSIX compatible filesystem.
     To log it, you need to define the NeptuneFileDataSet in any Kedro catalog, including catalog.yml.
 
-    You may also want to check `Neptune-Kedro integration docs page`_.
     Args:
-        filepath (string): Filepath in POSIX format to a text file prefixed with a protocol like s3://.
-            Same as for `Kedro TextDataSet`_.
-        credentials (dict, optional): Credentials required to get access to the underlying filesystem.
-            Same as for `Kedro TextDataSet`_.
-        fs_args (dict, optional): Extra arguments to pass into underlying filesystem class constructor.
-            Same as for`Kedro TextDataSet`_.
+        filepath: Filepath in POSIX format to a text file prefixed with a protocol like s3://.
+            Same as for Kedro TextDataSet.
+        credentials: Credentials required to get access to the underlying filesystem.
+            Same as for Kedro TextDataSet.
+        fs_args: Extra arguments to pass into underlying filesystem class constructor.
+            Same as for Kedro TextDataSet.
+
     Examples:
-        Log a file to Neptune from any Kedro catalog YML file.
+        Log a file to Neptune from any Kedro catalog YML file:
 
-        example_model_file:
-            type: kedro_neptune.NeptuneFileDataSet
-            filepath: data/06_models/clf.pkl
+            example_model_file:
+                type: kedro_neptune.NeptuneFileDataSet
+                filepath: data/06_models/clf.pkl
 
-        Log a file to Neptune that has already been defined as a Kedro DataSet in any catalog YML file.
+        Log a file to Neptune that has already been defined as a Kedro DataSet in any catalog YML file:
 
-        example_iris_data:
-            type: pandas.CSVDataSet
-            filepath: data/01_raw/iris.csv
+            example_iris_data:
+                type: pandas.CSVDataSet
+                filepath: data/01_raw/iris.csv
 
-        example_iris_data@neptune:
-            type: kedro_neptune.NeptuneFileDataSet
-            filepath: data/01_raw/iris.csv
+            example_iris_data@neptune:
+                type: kedro_neptune.NeptuneFileDataSet
+                filepath: data/01_raw/iris.csv
 
-    You may also want to check `Neptune-Kedro integration docs page`_.
-    .. _Neptune-Kedro integration docs page:
-       https://docs.neptune.ai/integrations-and-supported-tools/pipeline-and-orchestration/kedro
-    .. _Kedro TextDataSet:
-        https://kedro.readthedocs.io/en/stable/kedro.extras.datasets.text.TextDataSet.html
+    For details, see the documentation:
+        https://docs.neptune.ai/api/integrations/kedro/#neptunefiledataset
+        https://docs.neptune.ai/integrations/kedro/
     """
 
     def __init__(
