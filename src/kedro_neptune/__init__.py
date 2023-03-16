@@ -144,7 +144,7 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
     * configuration files from the conf/base directory
     * full Kedro run command
     * any additional metadata like metrics, charts, or images that you logged from inside of your node functions.
-    
+
     See an example project in Neptune: https://app.neptune.ai/o/common/org/kedro-integration/e/KED-1563/all
 
     Args:
@@ -158,10 +158,10 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
             Default is 'kedro'.
         config: Name of the subdirectory inside of the Kedro 'conf' directory for
             configuration and catalog files. Default is 'base'.
-    
+
     Returns:
         `dict` with all summary items.
-    
+
     Examples:
 
         Pass required arguments directly:
