@@ -53,7 +53,7 @@ def report_accuracy(
     accuracy = (y_pred == y_test).sum() / len(y_test)
     logger = logging.getLogger(__name__)
     logger.info("Model has accuracy of %.3f on test data.", accuracy)
-    
+
     # Log metrics to the Neptune run
     neptune_run["nodes/report/accuracy"] = accuracy * 100
 
