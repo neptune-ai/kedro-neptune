@@ -28,7 +28,7 @@ Note: The Kedro-Neptune plugin supports distributed pipeline execution and works
 On the command line:
 
 ```
-pip install neptune kedro kedro-neptune
+pip install kedro neptune[kedro]
 kedro new --starter=pandas-iris
 ```
 
