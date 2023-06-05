@@ -417,7 +417,11 @@ class NeptuneHooks:
     @hook_impl
     def after_catalog_created(self, catalog: DataCatalog) -> None:
         self._run_id = hashlib.md5(str(time.time()).encode()).hexdigest()
-        os.environ["NEPTUNE_CUSTOM_RUN_ID"] = self._run_id
+
+        config = get_neptune_config(settings)
+
+        if config.enabled:
+            os.environ["NEPTUNE_CUSTOM_RUN_ID"] = self._run_id
 
         catalog.add(data_set_name="neptune_run", data_set=NeptuneRunDataSet())
 
@@ -437,8 +441,9 @@ class NeptuneHooks:
 
         current_namespace = run[config.base_namespace]
 
-        os.environ["NEPTUNE_API_TOKEN"] = config.api_token or ""
-        os.environ["NEPTUNE_PROJECT"] = config.project or ""
+        if config.enabled:
+            os.environ["NEPTUNE_API_TOKEN"] = config.api_token or ""
+            os.environ["NEPTUNE_PROJECT"] = config.project or ""
 
         log_command(namespace=current_namespace)
         log_run_params(namespace=current_namespace, run_params=run_params)
