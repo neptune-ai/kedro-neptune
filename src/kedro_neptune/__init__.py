@@ -241,19 +241,23 @@ class NeptuneRunDataSet(AbstractDataSet):
 
     def _set_run(self):
         neptune_config = get_neptune_config(settings)
-        self._run = neptune.init_run(
-            api_token=neptune_config.api_token,
-            project=neptune_config.project,
-            mode=_connection_mode(neptune_config.enabled),
-            capture_stdout=False,
-            capture_stderr=False,
-            capture_hardware_metrics=False,
-            capture_traceback=False,
-            source_files=None,
-        )
 
-    def _load(self) -> Handler:
+        if neptune_config.enabled:
+            self._run = neptune.init_run(
+                api_token=neptune_config.api_token,
+                project=neptune_config.project,
+                capture_stdout=False,
+                capture_stderr=False,
+                capture_hardware_metrics=False,
+                capture_traceback=False,
+                source_files=None,
+            )
+
+    def _load(self) -> Optional[Handler]:
         neptune_config = get_neptune_config(settings)
+
+        if not neptune_config.enabled:
+            return
 
         if self._run is None:
             self._set_run()
@@ -409,6 +413,22 @@ def log_command(namespace: Handler):
     namespace["kedro_command"] = " ".join(["kedro"] + sys.argv[1:])
 
 
+class NeptuneDecorator:
+    def __init__(self, func):
+        self.func = func
+
+    def __call__(self, *args, **kwargs):
+        neptune_config = get_neptune_config(settings)
+
+        if not neptune_config.enabled:
+            return
+
+        return self.func(*args, **kwargs)
+
+
+check_if_neptune_enabled = NeptuneDecorator
+
+
 class NeptuneHooks:
     def __init__(self):
         self._run_id: Optional[str] = None
@@ -418,32 +438,31 @@ class NeptuneHooks:
     def after_catalog_created(self, catalog: DataCatalog) -> None:
         self._run_id = hashlib.md5(str(time.time()).encode()).hexdigest()
 
-        config = get_neptune_config(settings)
+        neptune_config = get_neptune_config(settings)
 
-        if config.enabled:
+        if neptune_config.enabled:
             os.environ["NEPTUNE_CUSTOM_RUN_ID"] = self._run_id
 
         catalog.add(data_set_name="neptune_run", data_set=NeptuneRunDataSet())
 
     @hook_impl
+    @check_if_neptune_enabled
     def before_pipeline_run(self, run_params: Dict[str, Any], pipeline: Pipeline, catalog: DataCatalog) -> None:
-        config = get_neptune_config(settings)
+        neptune_config = get_neptune_config(settings)
 
         run = neptune.init_run(
-            api_token=config.api_token,
-            project=config.project,
-            mode=_connection_mode(config.enabled),
+            api_token=neptune_config.api_token,
+            project=neptune_config.project,
             custom_run_id=self._run_id,
-            source_files=config.source_files or None,
+            source_files=neptune_config.source_files or None,
         )
 
         run[INTEGRATION_VERSION_KEY] = __version__
 
-        current_namespace = run[config.base_namespace]
+        current_namespace = run[neptune_config.base_namespace]
 
-        if config.enabled:
-            os.environ["NEPTUNE_API_TOKEN"] = config.api_token or ""
-            os.environ["NEPTUNE_PROJECT"] = config.project or ""
+        os.environ["NEPTUNE_API_TOKEN"] = neptune_config.api_token or ""
+        os.environ["NEPTUNE_PROJECT"] = neptune_config.project or ""
 
         log_command(namespace=current_namespace)
         log_run_params(namespace=current_namespace, run_params=run_params)
@@ -451,6 +470,7 @@ class NeptuneHooks:
         log_pipeline_metadata(namespace=current_namespace, pipeline=pipeline)
 
     @hook_impl
+    @check_if_neptune_enabled
     def before_node_run(self, node: Node, inputs: Dict[str, Any], catalog: DataCatalog):
         run = catalog.load("neptune_run")
         current_namespace = run[f"nodes/{node.short_name}"]
@@ -465,6 +485,7 @@ class NeptuneHooks:
         self._node_execution_timers[node.short_name] = time.time()
 
     @hook_impl
+    @check_if_neptune_enabled
     def after_node_run(self, node: Node, catalog: DataCatalog, outputs: Dict[str, Any]) -> None:
         execution_time = float(time.time() - self._node_execution_timers[node.short_name])
 
@@ -483,6 +504,7 @@ class NeptuneHooks:
         catalog.release("neptune_run")
 
     @hook_impl
+    @check_if_neptune_enabled
     def after_pipeline_run(self, catalog: DataCatalog) -> None:
         run = catalog.load("neptune_run")
         log_data_catalog_metadata(namespace=run, catalog=catalog)
