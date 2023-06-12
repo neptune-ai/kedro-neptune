@@ -1,3 +1,9 @@
+## 0.2.0
+
+### Fixes
+- If `neptune` 'enabled' flag in the config is set to `false`, no neptune-related actions are taken ([#68](https://github.com/neptune-ai/kedro-neptune/pull/68))
+
+
 ##  0.1.5
 
 ### Fixes
