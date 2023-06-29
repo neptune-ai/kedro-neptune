@@ -29,7 +29,7 @@ from typing import (
 )
 
 import click
-from kedro.extras.datasets.text import TextDataSet
+from kedro_datasets.text import TextDataSet
 from kedro.framework.hooks import hook_impl
 from kedro.framework.project import settings
 from kedro.framework.session import KedroSession
