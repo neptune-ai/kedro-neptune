@@ -210,7 +210,8 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
 
 
 def _connection_mode(enabled: bool) -> str:
-    return "async" if enabled else "debug"
+    return "sync"
+    # return "async" if enabled else "debug"
 
 
 class NeptuneRunDataSet(AbstractDataSet):
