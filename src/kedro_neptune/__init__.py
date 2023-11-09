@@ -39,7 +39,7 @@ from kedro.io import (
     MemoryDataSet,
 )
 from kedro.io.core import (
-    AbstractDataSet,
+    AbstractDataset,
     Version,
     get_filepath_str,
 )
@@ -213,7 +213,7 @@ def _connection_mode(enabled: bool) -> str:
     return "async" if enabled else "debug"
 
 
-class NeptuneRunDataSet(AbstractDataSet):
+class NeptuneRunDataSet(AbstractDataset):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._run: Optional[neptune.Run] = None
@@ -373,7 +373,7 @@ def log_parameters(namespace: Handler, catalog: DataCatalog):
         namespace[f"parameters/{param_name}"] = value
 
 
-def log_dataset_metadata(namespace: Handler, name: str, dataset: AbstractDataSet):
+def log_dataset_metadata(namespace: Handler, name: str, dataset: AbstractDataset):
     additional_parameters = {}
     try:
         additional_parameters = dataset._describe()
