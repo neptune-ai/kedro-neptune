@@ -29,7 +29,6 @@ from typing import (
 )
 
 import click
-from kedro.extras.datasets.text import TextDataSet
 from kedro.framework.hooks import hook_impl
 from kedro.framework.project import settings
 from kedro.framework.session import KedroSession
@@ -45,6 +44,7 @@ from kedro.io.core import (
 )
 from kedro.pipeline import Pipeline
 from kedro.pipeline.node import Node
+from kedro_datasets.text import TextDataset
 from ruamel.yaml import YAML
 
 from kedro_neptune.config import get_neptune_config
@@ -273,7 +273,7 @@ class NeptuneRunDataSet(AbstractDataset):
             self._loaded = False
 
 
-class BinaryFileDataSet(TextDataSet):
+class BinaryFileDataSet(TextDataset):
     def __init__(
         self,
         filepath: str,
@@ -312,11 +312,11 @@ class NeptuneFileDataSet(BinaryFileDataSet):
 
     Args:
         filepath: Filepath in POSIX format to a text file prefixed with a protocol like s3://.
-            Same as for Kedro TextDataSet.
+            Same as for Kedro TextDataset.
         credentials: Credentials required to get access to the underlying filesystem.
-            Same as for Kedro TextDataSet.
+            Same as for Kedro TextDataset.
         fs_args: Extra arguments to pass into underlying filesystem class constructor.
-            Same as for Kedro TextDataSet.
+            Same as for Kedro TextDataset.
 
     Examples:
         Log a file to Neptune from any Kedro catalog YML file:

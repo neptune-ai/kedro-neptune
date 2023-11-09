@@ -16,6 +16,7 @@ importlib-metadata = { version = "*", python = "<3.8" }
 
 # Base requirements
 kedro = ">=0.18.5"
+kedro-datasets = ">=1.8.0"
 "ruamel.yaml" = "^0.17.0"
 
 # dev
