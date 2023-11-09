@@ -33,8 +33,8 @@ class NeptuneConfig:
 
 def get_neptune_config(settings) -> NeptuneConfig:
     config_loader = settings.CONFIG_LOADER_CLASS(settings.CONF_SOURCE, **settings.CONFIG_LOADER_ARGS)
-    credentials = config_loader.get("credentials_neptune*")
-    config = config_loader.get("neptune*")
+    credentials = config_loader["credentials_neptune"]
+    config = config_loader["neptune"]
 
     api_token = parse_config_value(credentials["neptune"]["api_token"])
     project = parse_config_value(config["neptune"]["project"])
