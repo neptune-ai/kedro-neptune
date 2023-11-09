@@ -328,7 +328,7 @@ class NeptuneFileDataSet(BinaryFileDataSet):
         Log a file to Neptune that has already been defined as a Kedro DataSet in any catalog YML file:
 
             example_iris_data:
-                type: pandas.CSVDataSet
+                type: pandas.CSVDataset
                 filepath: data/01_raw/iris.csv
 
             example_iris_data@neptune:

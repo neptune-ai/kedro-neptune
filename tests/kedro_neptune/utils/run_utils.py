@@ -60,7 +60,7 @@ def assert_structure(travel_speed: int = 10000):
             "name": "planets",
             "protocol": "file",
             "save_args": {"index": False},
-            "type": "CSVDataSet",
+            "type": "CSVDataset",
             "version": "None",
         }
 
