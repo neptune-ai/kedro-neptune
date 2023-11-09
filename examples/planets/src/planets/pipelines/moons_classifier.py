@@ -5,11 +5,11 @@ from kedro.pipeline import (
 )
 
 try:
-    from neptune.new.handler import Handler
-    from neptune.new.utils import stringify_unsupported
-except ImportError:
     from neptune.handler import Handler
     from neptune.utils import stringify_unsupported
+except ImportError:
+    from neptune.new.handler import Handler
+    from neptune.new.utils import stringify_unsupported
 
 
 # ------- Number of moons predictor --------
