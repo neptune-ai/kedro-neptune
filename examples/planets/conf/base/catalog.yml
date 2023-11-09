@@ -3,5 +3,5 @@
 # Documentation for this file format can be found in "The Data Catalog"
 # Link: https://kedro.readthedocs.io/en/stable/data/data_catalog.html
 planets:
-  type: pandas.CSVDataSet
+  type: pandas.CSVDataset
   filepath: data/planets/planets.csv
