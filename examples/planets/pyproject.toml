@@ -1,4 +1,4 @@
 [tool.kedro]
 package_name = "planets"
 project_name = "planets"
-project_version = "0.18.2"
+kedro_init_version = "0.18.5"
