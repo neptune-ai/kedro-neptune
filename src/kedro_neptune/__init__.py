@@ -29,7 +29,6 @@ from typing import (
 )
 
 import click
-from kedro.extras.datasets.text import TextDataSet
 from kedro.framework.hooks import hook_impl
 from kedro.framework.project import settings
 from kedro.framework.session import KedroSession
@@ -39,12 +38,13 @@ from kedro.io import (
     MemoryDataSet,
 )
 from kedro.io.core import (
-    AbstractDataSet,
+    AbstractDataset,
     Version,
     get_filepath_str,
 )
 from kedro.pipeline import Pipeline
 from kedro.pipeline.node import Node
+from kedro_datasets.text import TextDataset
 from ruamel.yaml import YAML
 
 from kedro_neptune.config import get_neptune_config
@@ -213,7 +213,7 @@ def _connection_mode(enabled: bool) -> str:
     return "async" if enabled else "debug"
 
 
-class NeptuneRunDataSet(AbstractDataSet):
+class NeptuneRunDataSet(AbstractDataset):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._run: Optional[neptune.Run] = None
@@ -273,7 +273,7 @@ class NeptuneRunDataSet(AbstractDataSet):
             self._loaded = False
 
 
-class BinaryFileDataSet(TextDataSet):
+class BinaryFileDataSet(TextDataset):
     def __init__(
         self,
         filepath: str,
@@ -312,11 +312,11 @@ class NeptuneFileDataSet(BinaryFileDataSet):
 
     Args:
         filepath: Filepath in POSIX format to a text file prefixed with a protocol like s3://.
-            Same as for Kedro TextDataSet.
+            Same as for Kedro TextDataset.
         credentials: Credentials required to get access to the underlying filesystem.
-            Same as for Kedro TextDataSet.
+            Same as for Kedro TextDataset.
         fs_args: Extra arguments to pass into underlying filesystem class constructor.
-            Same as for Kedro TextDataSet.
+            Same as for Kedro TextDataset.
 
     Examples:
         Log a file to Neptune from any Kedro catalog YML file:
@@ -328,7 +328,7 @@ class NeptuneFileDataSet(BinaryFileDataSet):
         Log a file to Neptune that has already been defined as a Kedro DataSet in any catalog YML file:
 
             example_iris_data:
-                type: pandas.CSVDataSet
+                type: pandas.CSVDataset
                 filepath: data/01_raw/iris.csv
 
             example_iris_data@neptune:
@@ -373,7 +373,7 @@ def log_parameters(namespace: Handler, catalog: DataCatalog):
         namespace[f"parameters/{param_name}"] = value
 
 
-def log_dataset_metadata(namespace: Handler, name: str, dataset: AbstractDataSet):
+def log_dataset_metadata(namespace: Handler, name: str, dataset: AbstractDataset):
     additional_parameters = {}
     try:
         additional_parameters = dataset._describe()
