@@ -1,12 +1,14 @@
 ## 0.3.0
 
+### Features
+- Added `OmegaConfig` support ([#73](https://github.com/neptune-ai/kedro-neptune/pull/73))
+
 ### Fixes
 - Replaced `AbstractDataSet`, `TextDataSet` and `CSVDataSet` with `AbstractDataset`, `TextDataset` and `CSVDataSet` respectively ([#73](https://github.com/neptune-ai/kedro-neptune/pull/73))
 - Replaced `kedro.extras.datasets` with `kedro_datasets` ([#73](https://github.com/neptune-ai/kedro-neptune/pull/73))
 
 ### Changes
 - Added `kedro_datasets` to requirements, and bumped `kedro` to `>=0.18.5` ([#73](https://github.com/neptune-ai/kedro-neptune/pull/73))
-- Added `OmegaConfig` support ([#73](https://github.com/neptune-ai/kedro-neptune/pull/73))
 
 ## 0.2.0
 
