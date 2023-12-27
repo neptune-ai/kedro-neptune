@@ -18,10 +18,10 @@ from tests.kedro_neptune.utils.run_utils import assert_structure
 
 
 def test_run():
-    run_pipeline(project="planets", session_params={"conf_source": "conf"})
+    run_pipeline(project="planets")
     assert_structure()
 
 
 def test_run_with_params():
-    run_pipeline(project="planets", session_params={"conf_source": "conf", "extra_params": {"travel_speed": 40000}})
+    run_pipeline(project="planets", session_params={"extra_params": {"travel_speed": 40000}})
     assert_structure(travel_speed=40000)
