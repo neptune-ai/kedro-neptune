@@ -29,6 +29,7 @@ class NeptuneConfig:
     base_namespace: str
     source_files: List[str]
     enabled: bool
+    dependencies: str
 
 
 def get_neptune_config(settings) -> NeptuneConfig:
@@ -41,7 +42,13 @@ def get_neptune_config(settings) -> NeptuneConfig:
     base_namespace = parse_config_value(config["neptune"]["base_namespace"])
     source_files = parse_config_value(config["neptune"]["upload_source_files"])
     enabled = ensure_bool(parse_config_value(config["neptune"].get("enabled", True)))
+    dependencies = parse_config_value(config["neptune"].get("dependencies", None))
 
     return NeptuneConfig(
-        api_token=api_token, project=project, base_namespace=base_namespace, source_files=source_files, enabled=enabled
+        api_token=api_token,
+        project=project,
+        base_namespace=base_namespace,
+        source_files=source_files,
+        enabled=enabled,
+        dependencies=dependencies,
     )
