@@ -1,3 +1,8 @@
+## [UNRELEASED] 0.4.0
+
+### Fixes
+- Replaced `*DataSet` and `data_set` with `*Dataset` and `dataset` respectively
+
 ## 0.3.0
 
 ### Features
