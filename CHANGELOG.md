@@ -1,7 +1,7 @@
 ## [UNRELEASED] 0.4.0
 
 ### Fixes
-- Replaced `*DataSet` and `data_set` with `*Dataset` and `dataset` respectively
+- Replaced `*DataSet` and `data_set` with `*Dataset` and `dataset` respectively ([#79](https://github.com/neptune-ai/kedro-neptune/pull/79))
 
 ## 0.3.0
 
