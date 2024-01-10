@@ -9,14 +9,14 @@ style = "semver"
 pattern = "default-unprefixed"
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.9"
 
 # Python lack of functionalities from future versions
 importlib-metadata = { version = "*", python = "<3.8" }
 
 # Base requirements
-kedro = ">=0.18.5"
-kedro-datasets = ">=1.8.0"
+kedro = ">=0.19.0"
+kedro-datasets = ">=2.0.0"
 "ruamel.yaml" = "^0.17.0"
 
 # dev
