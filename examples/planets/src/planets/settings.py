@@ -35,8 +35,8 @@ CONFIG_LOADER_ARGS = {
     "config_patterns": {
         #   "spark" : ["spark*/"],
         #   "parameters": ["parameters*", "parameters*/**", "**/parameters*"],
-        "credentials_neptune": ["credentials_neptune*"],
-        "neptune": ["neptune*"],
+        "credentials_neptune": ["*/credentials_neptune*"],
+        "neptune": ["*/neptune*"],
     }
 }
 
