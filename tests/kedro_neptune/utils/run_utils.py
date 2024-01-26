@@ -70,7 +70,7 @@ def assert_structure(travel_speed: int = 10000):
             "filepath": f"{os.getcwd()}/data/planets/planets.csv",
             "name": "planets@neptune",
             "protocol": "file",
-            "type": "NeptuneFileDataSet",
+            "type": "NeptuneFileDataset",
             "version": "None",
         }
         assert run.exists("kedro/catalog/files/planets@neptune")

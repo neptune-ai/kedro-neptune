@@ -15,6 +15,7 @@
 #
 __all__ = ["run_pipeline"]
 
+from pathlib import Path
 from typing import (
     Any,
     Dict,
@@ -22,6 +23,7 @@ from typing import (
 
 from kedro.framework.project import configure_project
 from kedro.framework.session import KedroSession
+from kedro.framework.startup import bootstrap_project
 
 
 def run_pipeline(project: str, run_params: Dict[str, Any] = None, session_params: Dict[str, Any] = None):
@@ -30,8 +32,9 @@ def run_pipeline(project: str, run_params: Dict[str, Any] = None, session_params
 
     if session_params is None:
         session_params = {}
-
     configure_project(project)
 
-    with KedroSession.create(project, **session_params) as session:
+    bootstrap_project(Path(".").resolve())
+
+    with KedroSession.create(**session_params) as session:
         session.run(**run_params)

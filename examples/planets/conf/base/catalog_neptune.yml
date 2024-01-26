@@ -1,21 +1,21 @@
-# You can log files to Neptune via NeptuneFileDataSet
+# You can log files to Neptune via NeptuneFileDataset
 #
 # example_artifact:
-#   type: kedro_neptune.NeptuneFileDataSet
+#   type: kedro_neptune.NeptuneFileDataset
 #   filepath: data/06_models/clf_model.pkl
 #
-# If you want to log existing Kedro Dataset to Neptune add @neptune to the DataSet name
+# If you want to log existing Kedro Dataset to Neptune add @neptune to the Dataset name
 #
 # example_iris_data@neptune:
-#   type: kedro_neptune.NeptuneFileDataSet
+#   type: kedro_neptune.NeptuneFileDataset
 #   filepath: data/01_raw/iris.csv
 #
-# You can use kedro_neptune.NeptuneFileDataSet in any catalog including conf/base/catalog.yml
+# You can use kedro_neptune.NeptuneFileDataset in any catalog including conf/base/catalog.yml
 #
 planets@neptune:
-  type: kedro_neptune.NeptuneFileDataSet
+  type: kedro_neptune.NeptuneFileDataset
   filepath: data/planets/planets.csv
 
 logo:
-  type: kedro_neptune.NeptuneFileDataSet
+  type: kedro_neptune.NeptuneFileDataset
   filepath: data/planets/logo.png
