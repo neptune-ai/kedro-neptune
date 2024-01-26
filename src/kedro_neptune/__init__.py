@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-__all__ = ["NeptuneRunDataSet", "NeptuneFileDataSet", "neptune_hooks", "init", "__version__"]
+__all__ = ["NeptuneRunDataset", "NeptuneFileDataset", "neptune_hooks", "init", "__version__"]
 
 import hashlib
 import json
@@ -35,7 +35,7 @@ from kedro.framework.session import KedroSession
 from kedro.framework.startup import ProjectMetadata
 from kedro.io import (
     DataCatalog,
-    MemoryDataSet,
+    MemoryDataset,
 )
 from kedro.io.core import (
     AbstractDataset,
@@ -97,19 +97,19 @@ neptune:
 """
 
 INITIAL_NEPTUNE_CATALOG = """\
-# You can log files to Neptune via NeptuneFileDataSet
+# You can log files to Neptune via NeptuneFileDataset
 #
 # example_artifact:
-#   type: kedro_neptune.NeptuneFileDataSet
+#   type: kedro_neptune.NeptuneFileDataset
 #   filepath: data/06_models/clf_model.pkl
 #
-# If you want to log existing Kedro Dataset to Neptune add @neptune to the DataSet name
+# If you want to log existing Kedro Dataset to Neptune add @neptune to the Dataset name
 #
 # example_iris_data@neptune:
-#   type: kedro_neptune.NeptuneFileDataSet
+#   type: kedro_neptune.NeptuneFileDataset
 #   filepath: data/01_raw/iris.csv
 #
-# You can use kedro_neptune.NeptuneFileDataSet in any catalog including conf/base/catalog.yml
+# You can use kedro_neptune.NeptuneFileDataset in any catalog including conf/base/catalog.yml
 #
 """
 
@@ -139,7 +139,7 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
     After initializing it, whenever you run '$ kedro run', you will log:
     * parameters
     * pipeline execution configuration (run_params)
-    * metadata about Kedro DataSets
+    * metadata about Kedro Datasets
     * hardware consumption and node execution times
     * configuration files from the conf/base directory
     * full Kedro run command
@@ -213,7 +213,7 @@ def _connection_mode(enabled: bool) -> str:
     return "async" if enabled else "debug"
 
 
-class NeptuneRunDataSet(AbstractDataset):
+class NeptuneRunDataset(AbstractDataset):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._run: Optional[neptune.Run] = None
@@ -273,7 +273,7 @@ class NeptuneRunDataSet(AbstractDataset):
             self._loaded = False
 
 
-class BinaryFileDataSet(TextDataset):
+class BinaryFileDataset(TextDataset):
     def __init__(
         self,
         filepath: str,
@@ -304,11 +304,11 @@ class BinaryFileDataSet(TextDataset):
             return fs_file.read()
 
 
-class NeptuneFileDataSet(BinaryFileDataSet):
-    """NeptuneFileDataSet is a Kedro DataSet that lets you log files to Neptune.
+class NeptuneFileDataset(BinaryFileDataset):
+    """NeptuneFileDataset is a Kedro Dataset that lets you log files to Neptune.
 
     It can be any file on the POSIX compatible filesystem.
-    To log it, you need to define the NeptuneFileDataSet in any Kedro catalog, including catalog.yml.
+    To log it, you need to define the NeptuneFileDataset in any Kedro catalog, including catalog.yml.
 
     Args:
         filepath: Filepath in POSIX format to a text file prefixed with a protocol like s3://.
@@ -322,17 +322,17 @@ class NeptuneFileDataSet(BinaryFileDataSet):
         Log a file to Neptune from any Kedro catalog YML file:
 
             example_model_file:
-                type: kedro_neptune.NeptuneFileDataSet
+                type: kedro_neptune.NeptuneFileDataset
                 filepath: data/06_models/clf.pkl
 
-        Log a file to Neptune that has already been defined as a Kedro DataSet in any catalog YML file:
+        Log a file to Neptune that has already been defined as a Kedro Dataset in any catalog YML file:
 
             example_iris_data:
                 type: pandas.CSVDataset
                 filepath: data/01_raw/iris.csv
 
             example_iris_data@neptune:
-                type: kedro_neptune.NeptuneFileDataSet
+                type: kedro_neptune.NeptuneFileDataset
                 filepath: data/01_raw/iris.csv
 
     For details, see the documentation:
@@ -349,7 +349,7 @@ class NeptuneFileDataSet(BinaryFileDataSet):
         super().__init__(filepath=filepath, version=None, credentials=credentials, fs_args=fs_args)
 
 
-def log_file_dataset(namespace: Handler, name: str, dataset: NeptuneFileDataSet):
+def log_file_dataset(namespace: Handler, name: str, dataset: NeptuneFileDataset):
     if not namespace.container.exists(f"{namespace._path}/{name}"):
         data = dataset.load()
         extension = dataset._describe().get("extension")
@@ -386,12 +386,12 @@ def log_dataset_metadata(namespace: Handler, name: str, dataset: AbstractDataset
 def log_data_catalog_metadata(namespace: Handler, catalog: DataCatalog):
     namespace = namespace["catalog"]
 
-    for name, dataset in catalog._data_sets.items():
+    for name, dataset in catalog._datasets.items():
         if dataset.exists() and not namespace.container.exists(join_paths(namespace._path, name)):
-            if not isinstance(dataset, MemoryDataSet) and not isinstance(dataset, NeptuneRunDataSet):
+            if not isinstance(dataset, MemoryDataset) and not isinstance(dataset, NeptuneRunDataset):
                 log_dataset_metadata(namespace=namespace["datasets"], name=name, dataset=dataset)
 
-            if isinstance(dataset, NeptuneFileDataSet):
+            if isinstance(dataset, NeptuneFileDataset):
                 log_file_dataset(namespace=namespace["files"], name=name, dataset=dataset)
 
     log_parameters(namespace=namespace, catalog=catalog)
@@ -427,7 +427,7 @@ class NeptuneHooks:
         if config.enabled:
             os.environ["NEPTUNE_CUSTOM_RUN_ID"] = self._run_id
 
-        catalog.add(data_set_name="neptune_run", data_set=NeptuneRunDataSet())
+        catalog.add(dataset_name="neptune_run", dataset=NeptuneRunDataset())
 
     @hook_impl
     def before_pipeline_run(self, run_params: Dict[str, Any], pipeline: Pipeline, catalog: DataCatalog) -> None:
