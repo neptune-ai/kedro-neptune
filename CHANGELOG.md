@@ -1,4 +1,4 @@
-## [UNRELEASED] 0.4.0
+## 0.4.0
 
 ### Features
 - Added [`dependencies`](https://docs.neptune.ai/logging/dependencies/) support ([#80](https://github.com/neptune-ai/kedro-neptune/pull/80))
