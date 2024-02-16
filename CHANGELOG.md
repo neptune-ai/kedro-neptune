@@ -1,4 +1,7 @@
-## [UNRELEASED] 0.4.0
+## 0.4.0
+
+### Features
+- Added [`dependencies`](https://docs.neptune.ai/logging/dependencies/) support ([#80](https://github.com/neptune-ai/kedro-neptune/pull/80))
 
 ### Fixes
 - Replaced `*DataSet` and `data_set` with `*Dataset` and `dataset` respectively ([#79](https://github.com/neptune-ai/kedro-neptune/pull/79))

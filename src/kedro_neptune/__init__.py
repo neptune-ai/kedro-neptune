@@ -83,6 +83,7 @@ neptune:
 #GLOBAL CONFIG
   project: ''
   base_namespace: 'kedro'
+  dependencies: ''
   enabled: true
 
 #LOGGING
@@ -128,8 +129,16 @@ use the $NEPTUNE_PROJECT environment variable:""".replace(
 @click.option("--project", prompt=PROMPT_PROJECT_NAME, default="$NEPTUNE_PROJECT")
 @click.option("--base-namespace", default="kedro")
 @click.option("--config", default="base")
+@click.option("--dependencies", default=None)
 @click.pass_obj
-def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace: str, config: str):
+def init(
+    metadata: ProjectMetadata,
+    api_token: str,
+    project: str,
+    base_namespace: str,
+    config: str,
+    dependencies: str,
+):
     """Command line interface (CLI) command for initializing the Kedro-Neptune plugin.
 
     The Kedro-Neptune plugin lets you log metadata related to Kedro pipelines to
@@ -158,6 +167,9 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
             Default is 'kedro'.
         config: Name of the subdirectory inside of the Kedro 'conf' directory for
             configuration and catalog files. Default is 'base'.
+        dependencies: Tracks environment requirements.
+            If you pass "infer" to this argument, Neptune logs dependencies installed in the current environment.
+            You can also pass a path to your dependency file directly. If left empty, no dependency file is uploaded.
 
     Returns:
         `dict` with all summary items.
@@ -196,6 +208,7 @@ def init(metadata: ProjectMetadata, api_token: str, project: str, base_namespace
             config_template["neptune"]["project"] = project
             config_template["neptune"]["base_namespace"] = base_namespace
             config_template["neptune"]["upload_source_files"] = ["**/*.py", f"{settings.CONF_SOURCE}/{config}/*.yml"]
+            config_template["neptune"]["dependencies"] = dependencies
 
             yaml.dump(config_template, config_file)
 
@@ -251,6 +264,7 @@ class NeptuneRunDataset(AbstractDataset):
                 capture_hardware_metrics=False,
                 capture_traceback=False,
                 source_files=None,
+                dependencies=neptune_config.dependencies,
             )
 
     def _load(self) -> Optional[Handler]:
