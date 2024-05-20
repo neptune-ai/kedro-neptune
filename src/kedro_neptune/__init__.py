@@ -434,11 +434,14 @@ class NeptuneHooks:
 
     @hook_impl
     def after_catalog_created(self, catalog: DataCatalog) -> None:
-        self._run_id = hashlib.md5(str(time.time()).encode()).hexdigest()
+        self._run_id = (
+            os.environ.get("NEPTUNE_CUSTOM_RUN_ID")
+            or hashlib.md5(str(time.time()).encode()).hexdigest()
+        )
 
         config = get_neptune_config(settings)
 
-        if config.enabled:
+        if config.enabled and not os.environ.get("NEPTUNE_CUSTOM_RUN_ID"):
             os.environ["NEPTUNE_CUSTOM_RUN_ID"] = self._run_id
 
         catalog.add(dataset_name="neptune_run", dataset=NeptuneRunDataset())
