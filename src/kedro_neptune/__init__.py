@@ -14,7 +14,13 @@
 # limitations under the License.
 #
 
-__all__ = ["NeptuneRunDataset", "NeptuneFileDataset", "neptune_hooks", "init", "__version__"]
+__all__ = [
+    "NeptuneRunDataset",
+    "NeptuneFileDataset",
+    "neptune_hooks",
+    "init",
+    "__version__",
+]
 
 import hashlib
 import json
@@ -53,6 +59,7 @@ from kedro_neptune.version import __version__
 try:
     # neptune-client>=1.0.0 package structure
     import neptune
+    from neptune.envs import CUSTOM_RUN_ID_ENV_NAME
     from neptune.handler import Handler
     from neptune.integrations.utils import join_paths
     from neptune.types import File
@@ -60,6 +67,7 @@ try:
 except ImportError:
     # neptune-client=0.9.0+ package structure
     import neptune.new as neptune
+    from neptune.new.envs import CUSTOM_RUN_ID_ENV_NAME
     from neptune.new.handler import Handler
     from neptune.new.integrations.utils import join_paths
     from neptune.new.types import File
@@ -207,7 +215,10 @@ def init(
             config_template = yaml.load(INITIAL_NEPTUNE_CONFIG)
             config_template["neptune"]["project"] = project
             config_template["neptune"]["base_namespace"] = base_namespace
-            config_template["neptune"]["upload_source_files"] = ["**/*.py", f"{settings.CONF_SOURCE}/{config}/*.yml"]
+            config_template["neptune"]["upload_source_files"] = [
+                "**/*.py",
+                f"{settings.CONF_SOURCE}/{config}/*.yml",
+            ]
             config_template["neptune"]["dependencies"] = dependencies
 
             yaml.dump(config_template, config_file)
@@ -414,7 +425,8 @@ def log_data_catalog_metadata(namespace: Handler, catalog: DataCatalog):
 def log_pipeline_metadata(namespace: Handler, pipeline: Pipeline):
     namespace["structure"].upload(
         File.from_content(
-            content=json.dumps(json.loads(pipeline.to_json()), indent=4, sort_keys=True), extension="json"
+            content=json.dumps(json.loads(pipeline.to_json()), indent=4, sort_keys=True),
+            extension="json",
         )
     )
 
@@ -434,15 +446,12 @@ class NeptuneHooks:
 
     @hook_impl
     def after_catalog_created(self, catalog: DataCatalog) -> None:
-        self._run_id = (
-            os.environ.get("NEPTUNE_CUSTOM_RUN_ID")
-            or hashlib.md5(str(time.time()).encode()).hexdigest()
-        )
+        self._run_id = os.getenv(CUSTOM_RUN_ID_ENV_NAME, hashlib.md5(str(time.time()).encode()).hexdigest())
 
         config = get_neptune_config(settings)
 
-        if config.enabled and not os.environ.get("NEPTUNE_CUSTOM_RUN_ID"):
-            os.environ["NEPTUNE_CUSTOM_RUN_ID"] = self._run_id
+        if config.enabled and not os.getenv(CUSTOM_RUN_ID_ENV_NAME):
+            os.environ[CUSTOM_RUN_ID_ENV_NAME] = self._run_id
 
         catalog.add(dataset_name="neptune_run", dataset=NeptuneRunDataset())
 
