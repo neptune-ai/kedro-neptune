@@ -489,7 +489,7 @@ class NeptuneHooks:
 
         run = catalog.load("neptune_run")
 
-        run["status/currently_running_node"] = node.short_name
+        run["status/currently_running"] = node.short_name
 
         current_namespace = run[f"nodes/{node.short_name}"]
 
