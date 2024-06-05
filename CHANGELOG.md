@@ -1,7 +1,7 @@
 ## 0.5.0
 
 ### Features
-- Added support for the `NEPTUNE_CUSTOM_RUN_ID` environment variable ([#81](https://github.com/neptune-ai/kedro-neptune/pull/81) by @turn1a)
+- Added support for the `NEPTUNE_CUSTOM_RUN_ID` environment variable ([#81](https://github.com/neptune-ai/kedro-neptune/pull/81))
 
 ## 0.4.0
 
