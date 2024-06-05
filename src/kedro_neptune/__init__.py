@@ -14,7 +14,13 @@
 # limitations under the License.
 #
 
-__all__ = ["NeptuneRunDataset", "NeptuneFileDataset", "neptune_hooks", "init", "__version__"]
+__all__ = [
+    "NeptuneRunDataset",
+    "NeptuneFileDataset",
+    "neptune_hooks",
+    "init",
+    "__version__",
+]
 
 import hashlib
 import json
@@ -207,7 +213,10 @@ def init(
             config_template = yaml.load(INITIAL_NEPTUNE_CONFIG)
             config_template["neptune"]["project"] = project
             config_template["neptune"]["base_namespace"] = base_namespace
-            config_template["neptune"]["upload_source_files"] = ["**/*.py", f"{settings.CONF_SOURCE}/{config}/*.yml"]
+            config_template["neptune"]["upload_source_files"] = [
+                "**/*.py",
+                f"{settings.CONF_SOURCE}/{config}/*.yml",
+            ]
             config_template["neptune"]["dependencies"] = dependencies
 
             yaml.dump(config_template, config_file)
@@ -414,7 +423,8 @@ def log_data_catalog_metadata(namespace: Handler, catalog: DataCatalog):
 def log_pipeline_metadata(namespace: Handler, pipeline: Pipeline):
     namespace["structure"].upload(
         File.from_content(
-            content=json.dumps(json.loads(pipeline.to_json()), indent=4, sort_keys=True), extension="json"
+            content=json.dumps(json.loads(pipeline.to_json()), indent=4, sort_keys=True),
+            extension="json",
         )
     )
 
@@ -478,7 +488,12 @@ class NeptuneHooks:
             return
 
         run = catalog.load("neptune_run")
+
+        run["status/currently_running_node"] = node.short_name
+
         current_namespace = run[f"nodes/{node.short_name}"]
+
+        current_namespace["status"] = "running"
 
         if inputs:
             current_namespace["inputs"] = stringify_unsupported(list(sorted(inputs.keys())))
@@ -499,8 +514,13 @@ class NeptuneHooks:
         execution_time = float(time.time() - self._node_execution_timers[node.short_name])
 
         run = catalog.load("neptune_run")
+
+        run["status/last_run"] = node.short_name
+        run["status/currently_running"] = "None"
+
         current_namespace = run[f"nodes/{node.short_name}"]
         current_namespace["execution_time"] = execution_time
+        current_namespace["status"] = "done"
 
         if outputs:
             current_namespace["outputs"] = stringify_unsupported(list(sorted(outputs.keys())))

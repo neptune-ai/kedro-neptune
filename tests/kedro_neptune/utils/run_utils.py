@@ -90,7 +90,10 @@ def assert_structure(travel_speed: int = 10000):
 
         # Nodes data
         check_node_metadata(
-            run=run, node_namespace="kedro/nodes/distances", inputs=["planets"], outputs=["distances_to_planets"]
+            run=run,
+            node_namespace="kedro/nodes/distances",
+            inputs=["planets"],
+            outputs=["distances_to_planets"],
         )
         check_node_metadata(
             run=run,
@@ -98,19 +101,34 @@ def assert_structure(travel_speed: int = 10000):
             inputs=["distances_to_planets"],
             outputs=["furthest_planet_distance", "furthest_planet_name"],
         )
-        check_node_metadata(run=run, node_namespace="kedro/nodes/judge_model", inputs=["neptune_run", "dataset"])
         check_node_metadata(
-            run=run, node_namespace="kedro/nodes/prepare_dataset", inputs=["planets"], outputs=["dataset"]
+            run=run,
+            node_namespace="kedro/nodes/judge_model",
+            inputs=["neptune_run", "dataset"],
+        )
+        check_node_metadata(
+            run=run,
+            node_namespace="kedro/nodes/prepare_dataset",
+            inputs=["planets"],
+            outputs=["dataset"],
         )
         check_node_metadata(
             run=run,
             node_namespace="kedro/nodes/travel_time",
-            inputs=["furthest_planet_distance", "furthest_planet_name", "params:travel_speed"],
+            inputs=[
+                "furthest_planet_distance",
+                "furthest_planet_name",
+                "params:travel_speed",
+            ],
             outputs=["travel_hours"],
         )
         assert run.exists("kedro/nodes/travel_time/parameters")
         assert run.exists("kedro/nodes/travel_time/parameters/travel_speed")
         assert run["kedro/nodes/travel_time/parameters/travel_speed"].fetch() == travel_speed
+
+        # Status
+        assert run["kedro/status/currently_running"].fetch() == "None"
+        assert run["kedro/status/last_run"].fetch() == "travel_time"
 
         # User defined data
         assert run.exists("furthest_planet")
@@ -141,3 +159,5 @@ def check_node_metadata(run: Run, node_namespace: str, inputs: List, outputs: Op
     if outputs:
         assert run.exists(f"{node_namespace}/outputs")
         assert sorted(literal_eval(run[f"{node_namespace}/outputs"].fetch())) == sorted(outputs)
+
+    assert run[f"{node_namespace}/status"].fetch() == "done"
