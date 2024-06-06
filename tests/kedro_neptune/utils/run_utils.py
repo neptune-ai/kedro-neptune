@@ -47,6 +47,8 @@ def assert_structure(travel_speed: int = 10000, custom_run_id: Optional[str] = N
         assert run.exists("kedro/kedro_command")
         assert run.exists("kedro/run_params")
         assert run.exists("kedro/structure")
+        assert run.exists("kedro/execution_order")
+        assert run.exists("kedro/log")
 
         # Data catalog
         assert run.exists("kedro/catalog/datasets")
@@ -158,3 +160,5 @@ def check_node_metadata(run: Run, node_namespace: str, inputs: List, outputs: Op
     if outputs:
         assert run.exists(f"{node_namespace}/outputs")
         assert sorted(literal_eval(run[f"{node_namespace}/outputs"].fetch())) == sorted(outputs)
+
+    assert run[f"{node_namespace}/status"].fetch() == "done"
