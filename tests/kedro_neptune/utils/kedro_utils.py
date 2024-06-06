@@ -15,6 +15,7 @@
 #
 __all__ = ["run_pipeline"]
 
+import os
 from pathlib import Path
 from typing import (
     Any,
@@ -26,12 +27,21 @@ from kedro.framework.session import KedroSession
 from kedro.framework.startup import bootstrap_project
 
 
-def run_pipeline(project: str, run_params: Dict[str, Any] = None, session_params: Dict[str, Any] = None):
+def run_pipeline(
+    project: str,
+    run_params: Dict[str, Any] = None,
+    session_params: Dict[str, Any] = None,
+    custom_run_id: str = None,
+):
     if run_params is None:
         run_params = {}
 
     if session_params is None:
         session_params = {}
+
+    if custom_run_id:
+        os.environ["NEPTUNE_CUSTOM_RUN_ID"] = custom_run_id
+
     configure_project(project)
 
     bootstrap_project(Path(".").resolve())

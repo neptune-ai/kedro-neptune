@@ -36,7 +36,7 @@ except ImportError:
 
 # It may take some time to refresh cache
 # @backoff.on_exception(backoff.expo, AssertionError, max_value=1, max_time=60)
-def assert_structure(travel_speed: int = 10000):
+def assert_structure(travel_speed: int = 10000, custom_run_id: Optional[str] = None):
     time.sleep(30)
     with restore_run() as run:
         run.sync(wait=True)
@@ -90,7 +90,10 @@ def assert_structure(travel_speed: int = 10000):
 
         # Nodes data
         check_node_metadata(
-            run=run, node_namespace="kedro/nodes/distances", inputs=["planets"], outputs=["distances_to_planets"]
+            run=run,
+            node_namespace="kedro/nodes/distances",
+            inputs=["planets"],
+            outputs=["distances_to_planets"],
         )
         check_node_metadata(
             run=run,
@@ -98,19 +101,33 @@ def assert_structure(travel_speed: int = 10000):
             inputs=["distances_to_planets"],
             outputs=["furthest_planet_distance", "furthest_planet_name"],
         )
-        check_node_metadata(run=run, node_namespace="kedro/nodes/judge_model", inputs=["neptune_run", "dataset"])
         check_node_metadata(
-            run=run, node_namespace="kedro/nodes/prepare_dataset", inputs=["planets"], outputs=["dataset"]
+            run=run,
+            node_namespace="kedro/nodes/judge_model",
+            inputs=["neptune_run", "dataset"],
+        )
+        check_node_metadata(
+            run=run,
+            node_namespace="kedro/nodes/prepare_dataset",
+            inputs=["planets"],
+            outputs=["dataset"],
         )
         check_node_metadata(
             run=run,
             node_namespace="kedro/nodes/travel_time",
-            inputs=["furthest_planet_distance", "furthest_planet_name", "params:travel_speed"],
+            inputs=[
+                "furthest_planet_distance",
+                "furthest_planet_name",
+                "params:travel_speed",
+            ],
             outputs=["travel_hours"],
         )
         assert run.exists("kedro/nodes/travel_time/parameters")
         assert run.exists("kedro/nodes/travel_time/parameters/travel_speed")
         assert run["kedro/nodes/travel_time/parameters/travel_speed"].fetch() == travel_speed
+
+        if custom_run_id:
+            assert run["sys/custom_run_id"].fetch() == custom_run_id
 
         # User defined data
         assert run.exists("furthest_planet")
