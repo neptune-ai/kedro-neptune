@@ -1,7 +1,7 @@
 ## [UNRELEASED] 0.5.0
 
 ### Features
-- Added node status tracking ([#82](https://github.com/neptune-ai/kedro-neptune/pull/82))
+- Added pipeline running log and execution order ([#82](https://github.com/neptune-ai/kedro-neptune/pull/82))
 
 ## 0.4.0
 

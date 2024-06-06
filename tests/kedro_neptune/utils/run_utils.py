@@ -47,6 +47,8 @@ def assert_structure(travel_speed: int = 10000):
         assert run.exists("kedro/kedro_command")
         assert run.exists("kedro/run_params")
         assert run.exists("kedro/structure")
+        assert run.exists("kedro/execution_order")
+        assert run.exists("kedro/log")
 
         # Data catalog
         assert run.exists("kedro/catalog/datasets")
@@ -125,10 +127,6 @@ def assert_structure(travel_speed: int = 10000):
         assert run.exists("kedro/nodes/travel_time/parameters")
         assert run.exists("kedro/nodes/travel_time/parameters/travel_speed")
         assert run["kedro/nodes/travel_time/parameters/travel_speed"].fetch() == travel_speed
-
-        # Status
-        assert run["kedro/status/currently_running"].fetch() == "None"
-        assert run["kedro/status/last_run"].fetch() == "travel_time"
 
         # User defined data
         assert run.exists("furthest_planet")

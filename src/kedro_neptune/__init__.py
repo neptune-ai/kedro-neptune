@@ -428,6 +428,8 @@ def log_pipeline_metadata(namespace: Handler, pipeline: Pipeline):
         )
     )
 
+    namespace["execution_order"] = pipeline.describe()
+
 
 def log_run_params(namespace: Handler, run_params: Dict[str, Any]):
     namespace["run_params"] = stringify_unsupported(run_params)
@@ -489,7 +491,7 @@ class NeptuneHooks:
 
         run = catalog.load("neptune_run")
 
-        run["status/currently_running"] = node.short_name
+        run["log"].append(f"Running {node.short_name}")
 
         current_namespace = run[f"nodes/{node.short_name}"]
 
@@ -500,7 +502,7 @@ class NeptuneHooks:
 
         for input_name, input_value in inputs.items():
             if input_name.startswith("params:"):
-                current_namespace[f'parameters/{input_name[len("params:"):]}'] = input_value
+                current_namespace[f'parameters/{input_name[len("params:"):]}'] = stringify_unsupported(input_value)
 
         self._node_execution_timers[node.short_name] = time.time()
 
@@ -515,8 +517,7 @@ class NeptuneHooks:
 
         run = catalog.load("neptune_run")
 
-        run["status/last_run"] = node.short_name
-        run["status/currently_running"] = "None"
+        run["log"].append(f"Finished {node.short_name}")
 
         current_namespace = run[f"nodes/{node.short_name}"]
         current_namespace["execution_time"] = execution_time
@@ -541,6 +542,7 @@ class NeptuneHooks:
 
         run = catalog.load("neptune_run")
         log_data_catalog_metadata(namespace=run, catalog=catalog)
+        run["log"].append("Finished pipeline")
         run.container.sync()
 
 
