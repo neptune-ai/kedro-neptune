@@ -36,7 +36,7 @@ except ImportError:
 
 # It may take some time to refresh cache
 # @backoff.on_exception(backoff.expo, AssertionError, max_value=1, max_time=60)
-def assert_structure(travel_speed: int = 10000):
+def assert_structure(travel_speed: int = 10000, custom_run_id: Optional[str] = None):
     time.sleep(30)
     with restore_run() as run:
         run.sync(wait=True)
@@ -127,6 +127,9 @@ def assert_structure(travel_speed: int = 10000):
         assert run.exists("kedro/nodes/travel_time/parameters")
         assert run.exists("kedro/nodes/travel_time/parameters/travel_speed")
         assert run["kedro/nodes/travel_time/parameters/travel_speed"].fetch() == travel_speed
+
+        if custom_run_id:
+            assert run["sys/custom_run_id"].fetch() == custom_run_id
 
         # User defined data
         assert run.exists("furthest_planet")

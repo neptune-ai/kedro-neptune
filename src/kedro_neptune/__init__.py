@@ -59,6 +59,7 @@ from kedro_neptune.version import __version__
 try:
     # neptune-client>=1.0.0 package structure
     import neptune
+    from neptune.envs import CUSTOM_RUN_ID_ENV_NAME
     from neptune.handler import Handler
     from neptune.integrations.utils import join_paths
     from neptune.types import File
@@ -66,6 +67,7 @@ try:
 except ImportError:
     # neptune-client=0.9.0+ package structure
     import neptune.new as neptune
+    from neptune.new.envs import CUSTOM_RUN_ID_ENV_NAME
     from neptune.new.handler import Handler
     from neptune.new.integrations.utils import join_paths
     from neptune.new.types import File
@@ -446,12 +448,12 @@ class NeptuneHooks:
 
     @hook_impl
     def after_catalog_created(self, catalog: DataCatalog) -> None:
-        self._run_id = hashlib.md5(str(time.time()).encode()).hexdigest()
+        self._run_id = os.getenv(CUSTOM_RUN_ID_ENV_NAME, hashlib.md5(str(time.time()).encode()).hexdigest())
 
         config = get_neptune_config(settings)
 
-        if config.enabled:
-            os.environ["NEPTUNE_CUSTOM_RUN_ID"] = self._run_id
+        if config.enabled and not os.getenv(CUSTOM_RUN_ID_ENV_NAME):
+            os.environ[CUSTOM_RUN_ID_ENV_NAME] = self._run_id
 
         catalog.add(dataset_name="neptune_run", dataset=NeptuneRunDataset())
 

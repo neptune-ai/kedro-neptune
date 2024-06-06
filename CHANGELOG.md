@@ -2,6 +2,7 @@
 
 ### Features
 - Added pipeline running log and execution order ([#82](https://github.com/neptune-ai/kedro-neptune/pull/82))
+- Added support for the `NEPTUNE_CUSTOM_RUN_ID` environment variable ([#81](https://github.com/neptune-ai/kedro-neptune/pull/81))
 
 ## 0.4.0
 
