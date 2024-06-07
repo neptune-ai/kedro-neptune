@@ -19,7 +19,7 @@ Neptune's Kedro plugin for experiment tracking and metadata management. It lets 
 
 * [Documentation](https://docs.neptune.ai/integrations/kedro)
 * [Code example on GitHub](https://github.com/neptune-ai/examples/tree/main/integrations-and-supported-tools/kedro/scripts/spaceflights)
-* [Example run logged in the Neptune app]([https://app.neptune.ai/o/common/org/kedro-integration/runs/details?viewId=standard-view&detailsTab=dashboard&dashboardId=Spaceflights-42874940-da74-4cdc-94a4-315a7cdfbfa8&shortId=KED-2098](https://app.neptune.ai/o/showcase/org/kedro/runs/details?viewId=9c348faf-42f3-4a6b-b5fd-2f7fc74b4c78&detailsTab=dashboard&dashboardId=Spaceflights-9b5f8098-9132-410f-a93a-0ab355a11fa5&shortId=KED-8))
+* [Example run logged in the Neptune app](https://app.neptune.ai/o/showcase/org/kedro/runs/details?viewId=9c348faf-42f3-4a6b-b5fd-2f7fc74b4c78&detailsTab=dashboard&dashboardId=Spaceflights-9b5f8098-9132-410f-a93a-0ab355a11fa5&shortId=KED-8)
 
 ## Support
 
