@@ -35,7 +35,7 @@ class NeptuneConfig:
 
 def get_neptune_config(settings) -> NeptuneConfig:
     config_loader = settings.CONFIG_LOADER_CLASS(
-        settings.CONF_SOURCE, env=get_kedro_env(), **settings.CONFIG_LOADER_ARGS
+        settings.CONF_SOURCE, env=get_kedro_env(settings), **settings.CONFIG_LOADER_ARGS
     )
     credentials = config_loader["credentials_neptune"]
     config = config_loader["neptune"]
