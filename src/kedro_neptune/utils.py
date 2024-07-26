@@ -16,9 +16,11 @@
 __all__ = [
     "ensure_bool",
     "parse_config_value",
+    "get_kedro_env",
 ]
 
 import os
+import sys
 from typing import (
     Any,
     Optional,
@@ -41,3 +43,16 @@ def ensure_bool(value: Optional[Union[str, bool]]) -> bool:
         return value.lower().strip() not in ("false", "no", "0")
 
     return value
+
+
+def get_kedro_env() -> Optional[str]:
+    """Returns kedro configuration environment to use.
+
+    Returns:
+        Optional[str]: `--env` commandline argument's value (if present)
+            or `KEDRO_ENV` value.
+    """
+    for i, arg in enumerate(sys.argv):
+        if arg == "--env" and i + 1 < len(sys.argv):
+            return sys.argv[i + 1]
+    return os.getenv("KEDRO_ENV")
