@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from kedro_neptune.utils import ensure_bool
+from unittest import mock
+from unittest.mock import patch
+
+from kedro_neptune.utils import ensure_bool, get_kedro_env
 
 
 class TestUtils:
@@ -34,3 +37,47 @@ class TestUtils:
         assert ensure_bool(value=" True  ") is True
         assert ensure_bool(value="True") is True
         assert ensure_bool(value="true") is True
+
+
+class TestGetKedroEnv:
+    def test_env_from_commandline(self):
+        """Test that the function returns the value of the `--env` commandline argument."""
+        with patch("sys.argv", ["kedro", "run", "--env", "test"]):
+            settings = mock.Mock()
+            settings.CONFIG_LOADER_ARGS = {}
+            expected = "test"
+            result = get_kedro_env(settings)
+            assert result == expected
+
+    def test_env_from_environment_variable(self):
+        """Test that the function returns the value of the `$KEDRO_ENV` environment variable."""
+        with patch("os.environ", {"KEDRO_ENV": "test"}):
+            settings = mock.Mock()
+            settings.CONFIG_LOADER_ARGS = {}
+            expected = "test"
+            result = get_kedro_env(settings)
+            assert result == expected
+
+    def test_env_from_default_run_env(self):
+        """Test that the function returns the value of `settings.CONFIG_LOADER_ARGS["default_run_env"]`."""
+        settings = mock.Mock()
+        settings.CONFIG_LOADER_ARGS = {"default_run_env": "test"}
+        expected = "test"
+        result = get_kedro_env(settings)
+        assert result == expected
+
+    def test_env_from_base_env(self):
+        """Test that the function returns the value of `settings.CONFIG_LOADER_ARGS["base_env"]`."""
+        settings = mock.Mock()
+        settings.CONFIG_LOADER_ARGS = {"base_env": "test"}
+        expected = "test"
+        result = get_kedro_env(settings)
+        assert result == expected
+
+    def test_env_none(self):
+        """Test that the function returns `None` when none of the above conditions are met."""
+        settings = mock.Mock()
+        settings.CONFIG_LOADER_ARGS = {}
+        expected = None
+        result = get_kedro_env(settings)
+        assert result == expected
