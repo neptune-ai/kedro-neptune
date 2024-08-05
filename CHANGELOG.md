@@ -1,3 +1,8 @@
+## 0.6.0
+
+### Features
+- You can now use Kedro environments to specify different Neptune configs for different environments ([#86](https://github.com/neptune-ai/kedro-neptune/pull/86))
+
 ## 0.5.0
 
 ### Features
